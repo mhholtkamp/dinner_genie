@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 from datetime import timedelta
 from typing import Any
+from uuid import uuid4
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -48,6 +49,7 @@ class DinnerGenieCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             "week_plan": old.get("week_plan"),
             "meals": old.get("meals", []),
             "shopping_lines": old.get("shopping_lines", []),
+            "shopping_items": old.get("shopping_items", []),
         }
 
     async def async_generate_week_plan(self) -> None:
@@ -58,8 +60,18 @@ class DinnerGenieCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         data = dict(self.data or {})
         data["week_plan"] = week_plan
+        shopping_lines = week_plan.get("shoppingLines", []) or []
+
         data["meals"] = week_plan.get("meals", []) or []
-        data["shopping_lines"] = week_plan.get("shoppingLines", []) or []
+        data["shopping_lines"] = shopping_lines
+        data["shopping_items"] = [
+            {
+                "uid": str(uuid4()),
+                "summary": str(line),
+                "status": "needs_action",
+            }
+            for line in shopping_lines
+        ]
         self.async_set_updated_data(data)
 
     async def async_choose_random_recipe(self) -> None:

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.1.4
+
+- Boodschappenlijst is nu een echte bewerkbare to-do lijst.
+- Items kunnen worden afgevinkt, toegevoegd, aangepast en verwijderd.
+- Nieuwe weekmenu-generatie vervangt de boodschappenlijst met nieuwe items.
+
 ## 2.1.3
 
 - Added bundled recipe placeholder image.
