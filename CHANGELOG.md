@@ -1,3 +1,10 @@
+## 2.2.0
+
+- Knoppen toegevoegd om één dag uit het weekmenu te vervangen.
+- Het vervangende gerecht wordt niet gekozen uit gerechten die al in het weekmenu staan.
+- Boodschappenlijst wordt na vervanging opnieuw opgebouwd op basis van het actuele weekmenu.
+- Bestaande afvinkstatus blijft behouden voor ongewijzigde boodschappenregels.
+
 ## 2.1.5
 
 - Voorbeeld dashboards toegevoegd.

@@ -290,6 +290,14 @@ views:
               **🌱 Dieet:** {{ state_attr('sensor.dinner_genie_dag_1','diet_type') }}  
               **🏷️ Categorie:** {{ state_attr('sensor.dinner_genie_dag_1','category') }}
 
+          - type: tile
+            entity: button.dinner_genie_vervang_dag_1
+            name: Vervang dit gerecht
+            icon: mdi:refresh
+            color: orange
+            tap_action:
+              action: toggle
+
           - type: heading
             heading: Ingrediënten
 
@@ -323,6 +331,14 @@ views:
               **⏱ Bereidingstijd:** {{ state_attr('sensor.dinner_genie_dag_2','prep_time') }}  
               **🌱 Dieet:** {{ state_attr('sensor.dinner_genie_dag_2','diet_type') }}  
               **🏷️ Categorie:** {{ state_attr('sensor.dinner_genie_dag_2','category') }}
+
+          - type: tile
+            entity: button.dinner_genie_vervang_dag_2
+            name: Vervang dit gerecht
+            icon: mdi:refresh
+            color: orange
+            tap_action:
+              action: toggle
 
           - type: heading
             heading: Ingrediënten
@@ -358,6 +374,14 @@ views:
               **🌱 Dieet:** {{ state_attr('sensor.dinner_genie_dag_3','diet_type') }}  
               **🏷️ Categorie:** {{ state_attr('sensor.dinner_genie_dag_3','category') }}
 
+          - type: tile
+            entity: button.dinner_genie_vervang_dag_3
+            name: Vervang dit gerecht
+            icon: mdi:refresh
+            color: orange
+            tap_action:
+              action: toggle
+
           - type: heading
             heading: Ingrediënten
 
@@ -391,6 +415,14 @@ views:
               **⏱ Bereidingstijd:** {{ state_attr('sensor.dinner_genie_dag_4','prep_time') }}  
               **🌱 Dieet:** {{ state_attr('sensor.dinner_genie_dag_4','diet_type') }}  
               **🏷️ Categorie:** {{ state_attr('sensor.dinner_genie_dag_4','category') }}
+
+          - type: tile
+            entity: button.dinner_genie_vervang_dag_4
+            name: Vervang dit gerecht
+            icon: mdi:refresh
+            color: orange
+            tap_action:
+              action: toggle
 
           - type: heading
             heading: Ingrediënten
@@ -426,6 +458,14 @@ views:
               **🌱 Dieet:** {{ state_attr('sensor.dinner_genie_dag_5','diet_type') }}  
               **🏷️ Categorie:** {{ state_attr('sensor.dinner_genie_dag_5','category') }}
 
+          - type: tile
+            entity: button.dinner_genie_vervang_dag_5
+            name: Vervang dit gerecht
+            icon: mdi:refresh
+            color: orange
+            tap_action:
+              action: toggle
+
           - type: heading
             heading: Ingrediënten
 
@@ -460,6 +500,14 @@ views:
               **🌱 Dieet:** {{ state_attr('sensor.dinner_genie_dag_6','diet_type') }}  
               **🏷️ Categorie:** {{ state_attr('sensor.dinner_genie_dag_6','category') }}
 
+          - type: tile
+            entity: button.dinner_genie_vervang_dag_6
+            name: Vervang dit gerecht
+            icon: mdi:refresh
+            color: orange
+            tap_action:
+              action: toggle
+
           - type: heading
             heading: Ingrediënten
 
@@ -493,6 +541,14 @@ views:
               **⏱ Bereidingstijd:** {{ state_attr('sensor.dinner_genie_dag_7','prep_time') }}  
               **🌱 Dieet:** {{ state_attr('sensor.dinner_genie_dag_7','diet_type') }}  
               **🏷️ Categorie:** {{ state_attr('sensor.dinner_genie_dag_7','category') }}
+
+          - type: tile
+            entity: button.dinner_genie_vervang_dag_7
+            name: Vervang dit gerecht
+            icon: mdi:refresh
+            color: orange
+            tap_action:
+              action: toggle
 
           - type: heading
             heading: Ingrediënten

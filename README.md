@@ -109,3 +109,16 @@ Card Mod
 ```
 
 Gebruik `dashboard_minimal.yaml` als je zonder custom frontend kaarten wilt starten.
+
+## Eén dag vervangen
+
+Vanaf versie 2.2.0 maakt de integratie per dag een vervangknop aan:
+
+```text
+button.dinner_genie_vervang_dag_1
+button.dinner_genie_vervang_dag_2
+...
+button.dinner_genie_vervang_dag_7
+```
+
+Als je een dag vervangt, kiest Dinner Genie een gerecht dat nog niet in de andere dagen van het weekmenu staat. Daarna wordt de boodschappenlijst opnieuw opgebouwd op basis van het actuele weekmenu.
