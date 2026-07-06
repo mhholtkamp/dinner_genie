@@ -1,5 +1,11 @@
 # Dinner Genie Home Assistant integration
 
+![Dinner Genie](images/banner.png)
+
+[![Hassfest](https://github.com/mhholtkamp/dinner_genie/actions/workflows/hassfest.yaml/badge.svg)](https://github.com/mhholtkamp/dinner_genie/actions/workflows/hassfest.yaml)
+[![HACS](https://github.com/mhholtkamp/dinner_genie/actions/workflows/hacs.yaml/badge.svg)](https://github.com/mhholtkamp/dinner_genie/actions/workflows/hacs.yaml)
+[![Python checks](https://github.com/mhholtkamp/dinner_genie/actions/workflows/python.yaml/badge.svg)](https://github.com/mhholtkamp/dinner_genie/actions/workflows/python.yaml)
+
 Custom integration voor Dinner Genie.
 
 ## Installatie via HACS custom repository
