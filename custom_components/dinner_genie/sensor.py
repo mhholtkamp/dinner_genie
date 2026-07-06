@@ -8,7 +8,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, MAX_DAYS
+from .const import DOMAIN, MAX_DAYS, PLACEHOLDER_IMAGE_URL
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
@@ -84,12 +84,15 @@ def _recipe_attributes(recipe: dict[str, Any] | None) -> dict[str, Any]:
     ingredients_v2 = recipe.get("ingredientsV2") or []
     ingredients_raw = recipe.get("ingredients") or []
     ingredients_formatted = _format_ingredients(ingredients_v2, ingredients_raw)
+    image_url = recipe.get("imageUrl") or PLACEHOLDER_IMAGE_URL
 
     return {
         "recipe_id": recipe.get("id"),
         "name": recipe.get("name"),
         "description": recipe.get("description"),
-        "image_url": recipe.get("imageUrl"),
+        "image_url": image_url,
+        "display_image": image_url,
+        "has_recipe_image": bool(recipe.get("imageUrl")),
         "prep_time": recipe.get("prepTime"),
         "category": recipe.get("category"),
         "recipe_type": recipe.get("recipeType"),

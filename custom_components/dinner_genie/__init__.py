@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from pathlib import Path
+
+from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_API_KEY
 from homeassistant.core import HomeAssistant
@@ -10,7 +13,21 @@ from .const import CONF_BASE_URL, CONF_GROUP_ID, DEFAULT_DAYS, DEFAULT_SERVINGS,
 from .coordinator import DinnerGenieCoordinator
 
 
+async def _async_register_static_assets(hass: HomeAssistant) -> None:
+    """Register Dinner Genie static assets."""
+    registered_key = f"{DOMAIN}_static_assets_registered"
+    if hass.data.get(registered_key):
+        return
+
+    assets_path = Path(__file__).parent / "assets"
+    await hass.http.async_register_static_paths(
+        [StaticPathConfig(f"/api/{DOMAIN}/assets", str(assets_path), True)]
+    )
+    hass.data[registered_key] = True
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    await _async_register_static_assets(hass)
     session = async_get_clientsession(hass)
     client = DinnerGenieClient(
         session,

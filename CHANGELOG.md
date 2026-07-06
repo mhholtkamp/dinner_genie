@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.1.3
+
+- Added bundled recipe placeholder image.
+- Registered Dinner Genie static assets in Home Assistant.
+- Day recipe sensors now expose `display_image`, fallback `image_url`, and `has_recipe_image`.
+
+
 ## v2.1.1
 
 - GitHub Actions toegevoegd voor Hassfest, HACS-validatie en Python syntax checks.

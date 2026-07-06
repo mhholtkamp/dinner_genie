@@ -78,3 +78,8 @@ De state is de naam van het gerecht. In de attributes staan onder andere:
 - `recipe_id`
 
 Je kunt dus op de dagsensor klikken om de bereiding en ingrediënten te bekijken.
+
+
+## Afbeeldingen
+
+Als een recept geen `imageUrl` heeft, gebruikt de integratie automatisch de meegeleverde placeholder. Gebruik in dashboards bij voorkeur het attribuut `display_image` of `image_url`.
