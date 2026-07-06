@@ -1,9 +1,8 @@
 {
   "domain": "dinner_genie",
   "name": "Dinner Genie",
-  "codeowners": [
-    "@mhholtkamp"
-  ],
+  "after_dependencies": ["http"],
+  "codeowners": ["@mhholtkamp"],
   "config_flow": true,
   "documentation": "https://github.com/mhholtkamp/dinner_genie",
   "iot_class": "cloud_polling",
