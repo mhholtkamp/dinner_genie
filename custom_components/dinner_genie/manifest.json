@@ -1,0 +1,10 @@
+{
+  "domain": "dinner_genie",
+  "name": "Dinner Genie",
+  "codeowners": [],
+  "config_flow": true,
+  "documentation": "https://dinner-genie.vercel.app/",
+  "iot_class": "cloud_polling",
+  "requirements": [],
+  "version": "1.0.0"
+}
