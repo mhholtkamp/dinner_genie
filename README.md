@@ -18,13 +18,20 @@ Custom integration voor Dinner Genie.
 
 De integratie maakt automatisch deze entiteiten aan:
 
-- `number.dinner_genie_aantal_dagen`
+- `number.dinner_genie_aantal_dagen` maximaal 7
 - `number.dinner_genie_aantal_personen`
 - `button.dinner_genie_genereer_weekmenu`
 - `button.dinner_genie_kies_willekeurig_gerecht`
 - `sensor.dinner_genie_aantal_recepten`
 - `sensor.dinner_genie_willekeurig_gerecht`
 - `sensor.dinner_genie_weekmenu`
+- `sensor.dinner_genie_dag_1`
+- `sensor.dinner_genie_dag_2`
+- `sensor.dinner_genie_dag_3`
+- `sensor.dinner_genie_dag_4`
+- `sensor.dinner_genie_dag_5`
+- `sensor.dinner_genie_dag_6`
+- `sensor.dinner_genie_dag_7`
 - `todo.dinner_genie_boodschappen`
 - `select.dinner_genie_dieet`
 - `select.dinner_genie_recepttype`
@@ -40,3 +47,28 @@ De integratie roept dan aan:
 ```
 
 met de waarden uit Home Assistant.
+
+## Maaltijden bekijken
+
+Naast de overzichtssensor `sensor.dinner_genie_weekmenu` maakt de integratie nu ook per dag een sensor aan.
+
+Bijvoorbeeld:
+
+```text
+sensor.dinner_genie_dag_1
+```
+
+De state is de naam van het gerecht. In de attributes staan onder andere:
+
+- `description`
+- `prep_time`
+- `category`
+- `diet_type`
+- `servings`
+- `ingredients`
+- `ingredients_v2`
+- `instructions`
+- `image_url`
+- `recipe_id`
+
+Je kunt dus op de dagsensor klikken om de bereiding en ingrediënten te bekijken.
