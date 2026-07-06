@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Dinner Genie instellen",
-        "description": "Vul je Dinner Genie API gegevens in.",
+        "description": "Vul de Dinner Genie API-gegevens in. De basis-URL is meestal {base_url}",
         "data": {
           "base_url": "API basis-URL",
           "group_id": "Groeps-ID",

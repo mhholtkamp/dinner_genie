@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Dinner Genie",
-        "description": "Enter the Dinner Genie API details. The base URL is usually https://dinner-genie.vercel.app/api",
+        "description": "Enter the Dinner Genie API details. The base URL is usually {base_url}",
         "data": {
           "base_url": "API base URL",
           "group_id": "Group ID",
@@ -12,10 +12,11 @@
       }
     },
     "error": {
-      "cannot_connect": "Cannot connect or API key/group ID is incorrect"
+      "cannot_connect": "Could not connect to Dinner Genie. Check the API details.",
+      "unknown": "Unexpected error"
     },
     "abort": {
-      "already_configured": "This Dinner Genie group is already configured"
+      "already_configured": "Dinner Genie is already configured"
     }
   }
 }
