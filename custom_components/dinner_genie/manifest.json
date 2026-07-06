@@ -1,10 +1,11 @@
 {
   "domain": "dinner_genie",
   "name": "Dinner Genie",
-  "codeowners": [],
+  "codeowners": ["@mhholtkamp"],
   "config_flow": true,
-  "documentation": "https://dinner-genie.vercel.app/",
+  "documentation": "https://github.com/mhholtkamp/dinner_genie",
+  "issue_tracker": "https://github.com/mhholtkamp/dinner_genie/issues",
   "iot_class": "cloud_polling",
   "requirements": [],
-  "version": "1.0.0"
+  "version": "2.0.0"
 }

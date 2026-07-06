@@ -4,62 +4,76 @@ import logging
 from datetime import timedelta
 from typing import Any
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import DinnerGenieApiError, DinnerGenieClient
-from .const import DEFAULT_SCAN_INTERVAL_HOURS, DOMAIN, STORAGE_KEY_PREFIX, STORAGE_VERSION
+from .const import DOMAIN, OPT_DAYS, OPT_DIET_TYPE, OPT_RECIPE_TYPE, OPT_SERVINGS
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class DinnerGenieCoordinator(DataUpdateCoordinator[dict[str, Any]]):
-    def __init__(self, hass: HomeAssistant, client: DinnerGenieClient, entry_id: str) -> None:
-        super().__init__(
-            hass,
-            _LOGGER,
-            name=DOMAIN,
-            update_interval=timedelta(hours=DEFAULT_SCAN_INTERVAL_HOURS),
-        )
+    def __init__(self, hass: HomeAssistant, entry: ConfigEntry, client: DinnerGenieClient) -> None:
+        super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=timedelta(hours=6))
+        self.entry = entry
         self.client = client
-        self.store: Store[dict[str, Any]] = Store(
-            hass,
-            STORAGE_VERSION,
-            f"{STORAGE_KEY_PREFIX}_{entry_id}",
-        )
-        self._stored_week_plan: dict[str, Any] = {}
 
-    async def async_load_stored_data(self) -> None:
-        self._stored_week_plan = await self.store.async_load() or {}
+    @property
+    def days(self) -> int:
+        return int(self.entry.options.get(OPT_DAYS, 5))
+
+    @property
+    def servings(self) -> int:
+        return int(self.entry.options.get(OPT_SERVINGS, 4))
+
+    @property
+    def filters(self) -> dict[str, Any]:
+        return {
+            "dietType": self.entry.options.get(OPT_DIET_TYPE, "all"),
+            "recipeType": self.entry.options.get(OPT_RECIPE_TYPE, "dinner"),
+        }
 
     async def _async_update_data(self) -> dict[str, Any]:
         try:
-            recipes = await self.client.recipes()
-            random_recipe = await self.client.random()
+            recipes = await self.client.recipes(limit=500)
         except DinnerGenieApiError as err:
             raise UpdateFailed(str(err)) from err
 
-        stored = self._stored_week_plan or {}
+        old = self.data or {}
         return {
             "recipes": recipes,
-            "random": random_recipe,
-            "week_plan": stored,
-            "meals": stored.get("meals", []),
-            "shopping_lines": stored.get("shoppingLines", []),
+            "random": old.get("random"),
+            "week_plan": old.get("week_plan"),
+            "meals": old.get("meals", []),
+            "shopping_lines": old.get("shopping_lines", []),
         }
 
-    async def async_generate_week_plan(self, days: int, servings: int) -> None:
+    async def async_generate_week_plan(self) -> None:
         try:
-            week_plan = await self.client.week_plan(days, servings)
+            week_plan = await self.client.week_plan(self.days, self.servings, **self.filters)
         except DinnerGenieApiError as err:
             raise UpdateFailed(str(err)) from err
-
-        self._stored_week_plan = week_plan
-        await self.store.async_save(week_plan)
 
         data = dict(self.data or {})
         data["week_plan"] = week_plan
-        data["meals"] = week_plan.get("meals", [])
-        data["shopping_lines"] = week_plan.get("shoppingLines", [])
+        data["meals"] = week_plan.get("meals", []) or []
+        data["shopping_lines"] = week_plan.get("shoppingLines", []) or []
         self.async_set_updated_data(data)
+
+    async def async_choose_random_recipe(self) -> None:
+        try:
+            random_recipe = await self.client.random(**self.filters)
+        except DinnerGenieApiError as err:
+            raise UpdateFailed(str(err)) from err
+
+        data = dict(self.data or {})
+        data["random"] = random_recipe
+        self.async_set_updated_data(data)
+
+    async def async_update_option(self, key: str, value: Any) -> None:
+        options = dict(self.entry.options)
+        options[key] = value
+        self.hass.config_entries.async_update_entry(self.entry, options=options)
+        self.async_update_listeners()

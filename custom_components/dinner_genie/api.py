@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-import async_timeout
 from typing import Any
+from urllib.parse import urlencode
 
 import aiohttp
+import async_timeout
 
 
 class DinnerGenieApiError(Exception):
@@ -14,56 +15,50 @@ class DinnerGenieClient:
     def __init__(self, session: aiohttp.ClientSession, base_url: str, group_id: str, api_key: str) -> None:
         self.session = session
         self.base_url = base_url.rstrip("/")
-        self.group_id = group_id.strip().strip("/")
+        self.group_id = group_id.strip()
         self.api_key = api_key.strip()
 
-    def _url(self, endpoint: str) -> str:
-        endpoint = endpoint.strip("/")
-        return f"{self.base_url}/groups/{self.group_id}/{endpoint}"
+    def _url(self, endpoint: str, params: dict[str, Any] | None = None) -> str:
+        endpoint = endpoint.lstrip("/")
+        url = f"{self.base_url}/groups/{self.group_id}/{endpoint}"
+        if params:
+            cleaned = {key: value for key, value in params.items() if value not in (None, "", "all")}
+            if cleaned:
+                url = f"{url}?{urlencode(cleaned)}"
+        return url
 
     async def _get(self, endpoint: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
-        headers = {
-            "X-API-Key": self.api_key,
-            "Accept": "application/json",
-        }
-        url = self._url(endpoint)
+        headers = {"X-API-Key": self.api_key}
+        url = self._url(endpoint, params)
 
         try:
             async with async_timeout.timeout(20):
-                async with self.session.get(url, headers=headers, params=params) as response:
-                    text = await response.text()
-                    if response.status >= 400:
-                        raise DinnerGenieApiError(
-                            f"Dinner Genie API fout {response.status}: {text[:300]}"
-                        )
+                async with self.session.get(url, headers=headers) as response:
                     try:
-                        data = await response.json()
+                        data = await response.json(content_type=None)
                     except Exception as err:
-                        raise DinnerGenieApiError("Dinner Genie gaf geen geldige JSON terug") from err
+                        text = await response.text()
+                        raise DinnerGenieApiError(f"Ongeldige API response: {text[:200]}") from err
+
+                    if response.status >= 400:
+                        message = data.get("error") if isinstance(data, dict) else None
+                        raise DinnerGenieApiError(message or f"API fout {response.status}")
+
+                    if not isinstance(data, dict):
+                        raise DinnerGenieApiError("API response is geen JSON object")
+                    return data
         except aiohttp.ClientError as err:
             raise DinnerGenieApiError(f"Kan Dinner Genie niet bereiken: {err}") from err
 
-        if not isinstance(data, dict):
-            raise DinnerGenieApiError("Dinner Genie response heeft een onverwacht formaat")
+    async def recipes(self, **filters: Any) -> dict[str, Any]:
+        return await self._get("recipes", filters)
 
-        return data
+    async def random(self, **filters: Any) -> dict[str, Any]:
+        return await self._get("random", filters)
 
-    async def async_test_connection(self) -> None:
+    async def week_plan(self, days: int, servings: int, **filters: Any) -> dict[str, Any]:
+        params = {"days": days, "servings": servings, **filters}
+        return await self._get("week-plan", params)
+
+    async def validate(self) -> None:
         await self.recipes(limit=1)
-
-    async def recipes(self, limit: int | None = None) -> dict[str, Any]:
-        params = {"limit": limit} if limit else None
-        return await self._get("recipes", params=params)
-
-    async def random(self) -> dict[str, Any]:
-        return await self._get("random", params={"recipeType": "dinner"})
-
-    async def week_plan(self, days: int, servings: int) -> dict[str, Any]:
-        return await self._get(
-            "week-plan",
-            params={
-                "days": days,
-                "servings": servings,
-                "recipeType": "dinner",
-            },
-        )

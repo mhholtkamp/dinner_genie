@@ -2,8 +2,8 @@
   "config": {
     "step": {
       "user": {
-        "title": "Dinner Genie",
-        "description": "Vul de Dinner Genie API gegevens in. Gebruik als basis-URL meestal https://dinner-genie.vercel.app/api",
+        "title": "Dinner Genie instellen",
+        "description": "Vul je Dinner Genie API gegevens in.",
         "data": {
           "base_url": "API basis-URL",
           "group_id": "Groeps-ID",
@@ -12,10 +12,10 @@
       }
     },
     "error": {
-      "cannot_connect": "Kan geen verbinding maken of API key/groeps-ID klopt niet"
+      "cannot_connect": "Kan geen verbinding maken of API key/groeps-ID klopt niet."
     },
     "abort": {
-      "already_configured": "Deze Dinner Genie groep is al geconfigureerd"
+      "already_configured": "Deze Dinner Genie groep is al geconfigureerd."
     }
   }
 }

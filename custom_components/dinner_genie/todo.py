@@ -11,23 +11,22 @@ from .const import DOMAIN
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
     coordinator = hass.data[DOMAIN][entry.entry_id]
-    async_add_entities([DinnerGenieShoppingList(coordinator, entry.entry_id)])
+    async_add_entities([DinnerGenieShoppingTodo(coordinator)])
 
 
-class DinnerGenieShoppingList(CoordinatorEntity, TodoListEntity):
-    _attr_name = "Dinner Genie boodschappenlijst"
+class DinnerGenieShoppingTodo(CoordinatorEntity, TodoListEntity):
+    _attr_has_entity_name = True
+    _attr_name = "Boodschappen"
 
-    def __init__(self, coordinator, entry_id: str) -> None:
+    def __init__(self, coordinator) -> None:
         super().__init__(coordinator)
-        self._attr_unique_id = f"{entry_id}_shopping_list"
+        self._attr_unique_id = f"{coordinator.entry.entry_id}_shopping_todo"
+
+    @property
+    def device_info(self):
+        return {"identifiers": {(DOMAIN, self.coordinator.entry.entry_id)}, "name": "Dinner Genie"}
 
     @property
     def todo_items(self) -> list[TodoItem]:
-        lines = self.coordinator.data.get("shopping_lines", []) if self.coordinator.data else []
-        return [
-            TodoItem(
-                summary=str(line),
-                status=TodoItemStatus.NEEDS_ACTION,
-            )
-            for line in lines
-        ]
+        lines = (self.coordinator.data or {}).get("shopping_lines") or []
+        return [TodoItem(summary=str(line), status=TodoItemStatus.NEEDS_ACTION) for line in lines]
