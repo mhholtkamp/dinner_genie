@@ -83,3 +83,29 @@ Je kunt dus op de dagsensor klikken om de bereiding en ingrediënten te bekijken
 ## Afbeeldingen
 
 Als een recept geen `imageUrl` heeft, gebruikt de integratie automatisch de meegeleverde placeholder. Gebruik in dashboards bij voorkeur het attribuut `display_image` of `image_url`.
+
+
+## Voorbeeld dashboards
+
+Deze repository bevat voorbeeld dashboards:
+
+```text
+examples/dashboard_sections.yaml
+examples/dashboard_minimal.yaml
+examples/dashboard_mobile.yaml
+```
+
+Dezelfde voorbeelden staan ook in:
+
+```text
+custom_components/dinner_genie/examples/
+```
+
+Voor het complete sections dashboard zijn deze HACS frontend kaarten handig:
+
+```text
+Button Card
+Card Mod
+```
+
+Gebruik `dashboard_minimal.yaml` als je zonder custom frontend kaarten wilt starten.

@@ -1,0 +1,510 @@
+button_card_templates:
+  dinner_genie_day:
+    show_entity_picture: true
+    show_label: true
+    name: |
+      [[[
+        return entity.state || "Geen gerecht";
+      ]]]
+    entity_picture: |
+      [[[
+        return entity.attributes.display_image || entity.attributes.image_url || "/local/community/dinner_genie/placeholder_recipe.png";
+      ]]]
+    label: |
+      [[[
+        const prep = entity.attributes.prep_time || "";
+        const diet = entity.attributes.diet_type || "";
+        const category = entity.attributes.category || "";
+
+        let dietIcon = "🍽️";
+        let dietText = diet || "geen dieet";
+
+        if (diet === "vegan") {
+          dietIcon = "🌿";
+          dietText = "vegan";
+        } else if (diet === "vegetarian") {
+          dietIcon = "🌱";
+          dietText = "vegetarisch";
+        }
+
+        let line1 = `⏱ ${prep}   ${dietIcon} ${dietText}`;
+        let line2 = category ? `🏷️ ${category}` : "";
+        return line2 ? `${line1}<br>${line2}` : line1;
+      ]]]
+    custom_fields:
+      day: |
+        [[[
+          return variables.day;
+        ]]]
+      detail_button: Details bekijken
+    tap_action:
+      action: navigate
+      navigation_path: |
+        [[[
+          return variables.path;
+        ]]]
+    styles:
+      grid:
+        - grid-template-areas: |
+            "day"
+            "i"
+            "n"
+            "l"
+            "detail_button"
+        - grid-template-columns: 1fr
+      card:
+        - border-radius: 24px
+        - overflow: hidden
+        - padding: 0
+        - background: "#1f1f1f"
+        - box-shadow: 0 8px 24px rgba(0,0,0,0.35)
+        - transition: transform 0.15s ease, box-shadow 0.15s ease
+      custom_fields:
+        day:
+          - font-size: 20px
+          - font-weight: 800
+          - color: white
+          - text-align: left
+          - justify-self: start
+          - padding: 16px 16px 10px 16px
+          - border-top: |
+              [[[
+                return `5px solid ${variables.color}`;
+              ]]]
+          - width: 100%
+          - box-sizing: border-box
+        detail_button:
+          - margin: 4px 16px 18px 16px
+          - padding: 12px
+          - border-radius: 18px
+          - background: |
+              [[[
+                return variables.color;
+              ]]]
+          - color: white
+          - font-weight: 700
+          - text-align: center
+      entity_picture:
+        - width: 100%
+        - height: 170px
+        - object-fit: cover
+        - border-radius: 0
+      name:
+        - font-size: 18px
+        - font-weight: 700
+        - padding: 14px 16px 2px 16px
+        - white-space: normal
+        - text-align: left
+        - color: white
+        - min-height: 52px
+        - max-height: 52px
+        - overflow: hidden
+        - line-height: 1.3
+        - display: flex
+        - align-items: flex-start
+      label:
+        - font-size: 14px
+        - padding: 0 16px 14px 16px
+        - color: "#d0d0d0"
+        - text-align: left
+        - min-height: 40px
+        - line-height: 1.35
+
+views:
+  - type: sections
+    title: Dinner Genie
+    path: dinner-genie
+    icon: mdi:silverware-fork-knife
+    max_columns: 7
+    badges: []
+    cards: []
+    sections:
+      - type: grid
+        column_span: 7
+        cards:
+          - type: markdown
+            content: >
+              # 🧞 Dinner Genie
+
+              Wat eten we deze week?
+
+              Stel het aantal dagen en personen in en genereer daarna een nieuw weekmenu.
+            card_mod:
+              style: |
+                ha-card {
+                  border-radius: 28px;
+                  padding: 12px;
+                  background: linear-gradient(135deg, #2a211d, #171717);
+                }
+          - type: tile
+            entity: number.dinner_genie_aantal_dagen
+            name: Aantal dagen
+            icon: mdi:calendar-week
+          - type: tile
+            entity: number.dinner_genie_aantal_personen
+            name: Aantal personen
+            icon: mdi:account-group
+          - type: tile
+            entity: select.dinner_genie_dieet
+            name: Dieet
+            icon: mdi:sprout
+          - type: tile
+            entity: select.dinner_genie_recepttype
+            name: Recepttype
+            icon: mdi:food
+          - type: tile
+            entity: button.dinner_genie_genereer_weekmenu
+            name: Vernieuwen
+            icon: mdi:refresh
+            color: orange
+            tap_action:
+              action: toggle
+
+      - type: grid
+        column_span: 7
+        cards:
+          - type: heading
+            heading: 🍽️ Weekmenu
+          - type: markdown
+            content: |
+              ## Deze week
+            card_mod:
+              style: |
+                ha-card {
+                  background: none;
+                  box-shadow: none;
+                  padding: 0;
+                }
+
+          - type: custom:button-card
+            template: dinner_genie_day
+            entity: sensor.dinner_genie_dag_1
+            variables:
+              day: Dag 1
+              color: "#F28C28"
+              path: /dinner-genie/dag-1
+
+          - type: custom:button-card
+            template: dinner_genie_day
+            entity: sensor.dinner_genie_dag_2
+            variables:
+              day: Dag 2
+              color: "#5BAE5B"
+              path: /dinner-genie/dag-2
+
+          - type: custom:button-card
+            template: dinner_genie_day
+            entity: sensor.dinner_genie_dag_3
+            variables:
+              day: Dag 3
+              color: "#4A90E2"
+              path: /dinner-genie/dag-3
+
+          - type: custom:button-card
+            template: dinner_genie_day
+            entity: sensor.dinner_genie_dag_4
+            variables:
+              day: Dag 4
+              color: "#8E6CCF"
+              path: /dinner-genie/dag-4
+
+          - type: custom:button-card
+            template: dinner_genie_day
+            entity: sensor.dinner_genie_dag_5
+            variables:
+              day: Dag 5
+              color: "#D96C6C"
+              path: /dinner-genie/dag-5
+
+          - type: custom:button-card
+            template: dinner_genie_day
+            entity: sensor.dinner_genie_dag_6
+            variables:
+              day: Dag 6
+              color: "#46B8B8"
+              path: /dinner-genie/dag-6
+
+          - type: custom:button-card
+            template: dinner_genie_day
+            entity: sensor.dinner_genie_dag_7
+            variables:
+              day: Dag 7
+              color: "#D9B44A"
+              path: /dinner-genie/dag-7
+
+      - type: grid
+        column_span: 7
+        cards:
+          - type: heading
+            heading: 🎲 Willekeurig
+          - type: tile
+            entity: button.dinner_genie_kies_willekeurig_gerecht
+            name: Kies willekeurig gerecht
+            icon: mdi:dice-5
+            color: orange
+
+  - type: sections
+    title: Boodschappen
+    path: boodschappen
+    icon: mdi:cart
+    max_columns: 3
+    badges: []
+    cards: []
+    sections:
+      - type: grid
+        column_span: 3
+        cards:
+          - type: markdown
+            content: |
+              # 🛒 Boodschappenlijst
+
+              Deze lijst wordt gevuld na het genereren van een weekmenu.
+            card_mod:
+              style: |
+                ha-card {
+                  border-radius: 28px;
+                  padding: 12px;
+                  background: linear-gradient(135deg, #1f2522, #171717);
+                }
+
+          - type: todo-list
+            entity: todo.dinner_genie_boodschappen
+            title: Boodschappen
+
+  - type: sections
+    max_columns: 1
+    subview: true
+    path: dag-1
+    title: Dag 1
+    sections:
+      - type: grid
+        column_span: 1
+        cards:
+          - type: markdown
+            content: |
+              <img src="{{ state_attr('sensor.dinner_genie_dag_1','display_image') }}" style="width:100%; border-radius:24px; max-height:320px; object-fit:cover;">
+
+              # {{ states('sensor.dinner_genie_dag_1') }}
+
+              **⏱ Bereidingstijd:** {{ state_attr('sensor.dinner_genie_dag_1','prep_time') }}  
+              **🌱 Dieet:** {{ state_attr('sensor.dinner_genie_dag_1','diet_type') }}  
+              **🏷️ Categorie:** {{ state_attr('sensor.dinner_genie_dag_1','category') }}
+
+          - type: heading
+            heading: Ingrediënten
+
+          - type: markdown
+            content: |
+              {{ state_attr('sensor.dinner_genie_dag_1', 'ingredients_markdown') }}
+
+          - type: heading
+            heading: Bereiding
+
+          - type: markdown
+            content: |
+              {{ state_attr('sensor.dinner_genie_dag_1', 'instructions') }}
+    cards: []
+
+  - type: sections
+    max_columns: 1
+    subview: true
+    path: dag-2
+    title: Dag 2
+    sections:
+      - type: grid
+        column_span: 1
+        cards:
+          - type: markdown
+            content: |
+              <img src="{{ state_attr('sensor.dinner_genie_dag_2','display_image') }}" style="width:100%; border-radius:24px; max-height:320px; object-fit:cover;">
+
+              # {{ states('sensor.dinner_genie_dag_2') }}
+
+              **⏱ Bereidingstijd:** {{ state_attr('sensor.dinner_genie_dag_2','prep_time') }}  
+              **🌱 Dieet:** {{ state_attr('sensor.dinner_genie_dag_2','diet_type') }}  
+              **🏷️ Categorie:** {{ state_attr('sensor.dinner_genie_dag_2','category') }}
+
+          - type: heading
+            heading: Ingrediënten
+
+          - type: markdown
+            content: |
+              {{ state_attr('sensor.dinner_genie_dag_2', 'ingredients_markdown') }}
+
+          - type: heading
+            heading: Bereiding
+
+          - type: markdown
+            content: |
+              {{ state_attr('sensor.dinner_genie_dag_2', 'instructions') }}
+    cards: []
+
+  - type: sections
+    max_columns: 1
+    subview: true
+    path: dag-3
+    title: Dag 3
+    sections:
+      - type: grid
+        column_span: 1
+        cards:
+          - type: markdown
+            content: |
+              <img src="{{ state_attr('sensor.dinner_genie_dag_3','display_image') }}" style="width:100%; border-radius:24px; max-height:320px; object-fit:cover;">
+
+              # {{ states('sensor.dinner_genie_dag_3') }}
+
+              **⏱ Bereidingstijd:** {{ state_attr('sensor.dinner_genie_dag_3','prep_time') }}  
+              **🌱 Dieet:** {{ state_attr('sensor.dinner_genie_dag_3','diet_type') }}  
+              **🏷️ Categorie:** {{ state_attr('sensor.dinner_genie_dag_3','category') }}
+
+          - type: heading
+            heading: Ingrediënten
+
+          - type: markdown
+            content: |
+              {{ state_attr('sensor.dinner_genie_dag_3', 'ingredients_markdown') }}
+
+          - type: heading
+            heading: Bereiding
+
+          - type: markdown
+            content: |
+              {{ state_attr('sensor.dinner_genie_dag_3', 'instructions') }}
+    cards: []
+
+  - type: sections
+    max_columns: 1
+    subview: true
+    path: dag-4
+    title: Dag 4
+    sections:
+      - type: grid
+        column_span: 1
+        cards:
+          - type: markdown
+            content: |
+              <img src="{{ state_attr('sensor.dinner_genie_dag_4','display_image') }}" style="width:100%; border-radius:24px; max-height:320px; object-fit:cover;">
+
+              # {{ states('sensor.dinner_genie_dag_4') }}
+
+              **⏱ Bereidingstijd:** {{ state_attr('sensor.dinner_genie_dag_4','prep_time') }}  
+              **🌱 Dieet:** {{ state_attr('sensor.dinner_genie_dag_4','diet_type') }}  
+              **🏷️ Categorie:** {{ state_attr('sensor.dinner_genie_dag_4','category') }}
+
+          - type: heading
+            heading: Ingrediënten
+
+          - type: markdown
+            content: |
+              {{ state_attr('sensor.dinner_genie_dag_4', 'ingredients_markdown') }}
+
+          - type: heading
+            heading: Bereiding
+
+          - type: markdown
+            content: |
+              {{ state_attr('sensor.dinner_genie_dag_4', 'instructions') }}
+    cards: []
+
+  - type: sections
+    max_columns: 1
+    subview: true
+    path: dag-5
+    title: Dag 5
+    sections:
+      - type: grid
+        column_span: 1
+        cards:
+          - type: markdown
+            content: |
+              <img src="{{ state_attr('sensor.dinner_genie_dag_5','display_image') }}" style="width:100%; border-radius:24px; max-height:320px; object-fit:cover;">
+
+              # {{ states('sensor.dinner_genie_dag_5') }}
+
+              **⏱ Bereidingstijd:** {{ state_attr('sensor.dinner_genie_dag_5','prep_time') }}  
+              **🌱 Dieet:** {{ state_attr('sensor.dinner_genie_dag_5','diet_type') }}  
+              **🏷️ Categorie:** {{ state_attr('sensor.dinner_genie_dag_5','category') }}
+
+          - type: heading
+            heading: Ingrediënten
+
+          - type: markdown
+            content: |
+              {{ state_attr('sensor.dinner_genie_dag_5', 'ingredients_markdown') }}
+
+          - type: heading
+            heading: Bereiding
+
+          - type: markdown
+            content: |
+              {{ state_attr('sensor.dinner_genie_dag_5', 'instructions') }}
+    cards: []
+
+  - type: sections
+    max_columns: 1
+    subview: true
+    path: dag-6
+    title: Dag 6
+    sections:
+      - type: grid
+        column_span: 1
+        cards:
+          - type: markdown
+            content: |
+              <img src="{{ state_attr('sensor.dinner_genie_dag_6','display_image') }}" style="width:100%; border-radius:24px; max-height:320px; object-fit:cover;">
+
+              # {{ states('sensor.dinner_genie_dag_6') }}
+
+              **⏱ Bereidingstijd:** {{ state_attr('sensor.dinner_genie_dag_6','prep_time') }}  
+              **🌱 Dieet:** {{ state_attr('sensor.dinner_genie_dag_6','diet_type') }}  
+              **🏷️ Categorie:** {{ state_attr('sensor.dinner_genie_dag_6','category') }}
+
+          - type: heading
+            heading: Ingrediënten
+
+          - type: markdown
+            content: |
+              {{ state_attr('sensor.dinner_genie_dag_6', 'ingredients_markdown') }}
+
+          - type: heading
+            heading: Bereiding
+
+          - type: markdown
+            content: |
+              {{ state_attr('sensor.dinner_genie_dag_6', 'instructions') }}
+    cards: []
+
+  - type: sections
+    max_columns: 1
+    subview: true
+    path: dag-7
+    title: Dag 7
+    sections:
+      - type: grid
+        column_span: 1
+        cards:
+          - type: markdown
+            content: |
+              <img src="{{ state_attr('sensor.dinner_genie_dag_7','display_image') }}" style="width:100%; border-radius:24px; max-height:320px; object-fit:cover;">
+
+              # {{ states('sensor.dinner_genie_dag_7') }}
+
+              **⏱ Bereidingstijd:** {{ state_attr('sensor.dinner_genie_dag_7','prep_time') }}  
+              **🌱 Dieet:** {{ state_attr('sensor.dinner_genie_dag_7','diet_type') }}  
+              **🏷️ Categorie:** {{ state_attr('sensor.dinner_genie_dag_7','category') }}
+
+          - type: heading
+            heading: Ingrediënten
+
+          - type: markdown
+            content: |
+              {{ state_attr('sensor.dinner_genie_dag_7', 'ingredients_markdown') }}
+
+          - type: heading
+            heading: Bereiding
+
+          - type: markdown
+            content: |
+              {{ state_attr('sensor.dinner_genie_dag_7', 'instructions') }}
+    cards: []

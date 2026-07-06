@@ -1,3 +1,11 @@
+## 2.1.5
+
+- Voorbeeld dashboards toegevoegd.
+- Compleet sections dashboard toegevoegd.
+- Minimal dashboard toegevoegd.
+- Mobile dashboard toegevoegd.
+- Voorbeelden staan in `examples/` en `custom_components/dinner_genie/examples/`.
+
 # Changelog
 
 ## 2.1.4

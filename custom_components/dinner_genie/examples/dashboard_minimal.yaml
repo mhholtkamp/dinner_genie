@@ -1,0 +1,29 @@
+views:
+  - title: Dinner Genie
+    path: dinner-genie
+    icon: mdi:silverware-fork-knife
+    cards:
+      - type: entities
+        title: Dinner Genie
+        entities:
+          - number.dinner_genie_aantal_dagen
+          - number.dinner_genie_aantal_personen
+          - select.dinner_genie_dieet
+          - select.dinner_genie_recepttype
+          - button.dinner_genie_genereer_weekmenu
+          - button.dinner_genie_kies_willekeurig_gerecht
+
+      - type: entities
+        title: Weekmenu
+        entities:
+          - sensor.dinner_genie_dag_1
+          - sensor.dinner_genie_dag_2
+          - sensor.dinner_genie_dag_3
+          - sensor.dinner_genie_dag_4
+          - sensor.dinner_genie_dag_5
+          - sensor.dinner_genie_dag_6
+          - sensor.dinner_genie_dag_7
+
+      - type: todo-list
+        entity: todo.dinner_genie_boodschappen
+        title: Boodschappen
