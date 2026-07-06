@@ -16,3 +16,7 @@
 - Knoppen toegevoegd voor weekmenu genereren en willekeurig gerecht kiezen.
 - Select entities toegevoegd voor dieet en recepttype.
 - Boodschappenlijst als `todo` entity toegevoegd.
+
+## 2.1.2
+
+- Added `ingredients_formatted` and `ingredients_markdown` attributes based on `ingredientsV2` for cleaner recipe popups.

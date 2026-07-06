@@ -33,12 +33,57 @@ class DinnerGenieBaseSensor(CoordinatorEntity, SensorEntity):
         return {"identifiers": {(DOMAIN, self.coordinator.entry.entry_id)}, "name": "Dinner Genie"}
 
 
+def _format_amount(amount: Any) -> str | None:
+    if amount in (None, ""):
+        return None
+    if isinstance(amount, float) and amount.is_integer():
+        return str(int(amount))
+    return str(amount)
+
+
+def _format_ingredient(ingredient: dict[str, Any]) -> str:
+    amount = _format_amount(ingredient.get("amount"))
+    unit = ingredient.get("unit")
+    name = ingredient.get("name") or ""
+
+    parts = []
+    if amount:
+        parts.append(amount)
+    if unit:
+        parts.append(str(unit))
+    if name:
+        parts.append(str(name))
+
+    return " ".join(parts).strip()
+
+
+def _format_ingredients(ingredients_v2: Any, fallback: Any) -> list[str]:
+    if isinstance(ingredients_v2, list) and ingredients_v2:
+        formatted = [
+            _format_ingredient(item)
+            for item in ingredients_v2
+            if isinstance(item, dict) and _format_ingredient(item)
+        ]
+        if formatted:
+            return formatted
+
+    if isinstance(fallback, list):
+        return [str(item) for item in fallback if item]
+
+    return []
+
+
+def _markdown_list(items: list[str]) -> str:
+    return "\n".join(f"- {item}" for item in items)
+
+
 def _recipe_attributes(recipe: dict[str, Any] | None) -> dict[str, Any]:
     if not isinstance(recipe, dict) or not recipe:
         return {}
 
     ingredients_v2 = recipe.get("ingredientsV2") or []
-    ingredients = recipe.get("ingredients") or []
+    ingredients_raw = recipe.get("ingredients") or []
+    ingredients_formatted = _format_ingredients(ingredients_v2, ingredients_raw)
 
     return {
         "recipe_id": recipe.get("id"),
@@ -50,8 +95,10 @@ def _recipe_attributes(recipe: dict[str, Any] | None) -> dict[str, Any]:
         "recipe_type": recipe.get("recipeType"),
         "diet_type": recipe.get("dietType"),
         "servings": recipe.get("servings"),
-        "ingredients": ingredients,
+        "ingredients": ingredients_raw,
         "ingredients_v2": ingredients_v2,
+        "ingredients_formatted": ingredients_formatted,
+        "ingredients_markdown": _markdown_list(ingredients_formatted),
         "instructions": recipe.get("instructions"),
         "created_at": recipe.get("createdAt"),
         "group_id": recipe.get("groupId"),
