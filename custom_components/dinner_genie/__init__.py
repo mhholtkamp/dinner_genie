@@ -14,14 +14,19 @@ from .coordinator import DinnerGenieCoordinator
 
 
 async def _async_register_static_assets(hass: HomeAssistant) -> None:
-    """Register Dinner Genie static assets."""
+    """Register Dinner Genie static assets and Lovelace resources."""
     registered_key = f"{DOMAIN}_static_assets_registered"
     if hass.data.get(registered_key):
         return
 
-    assets_path = Path(__file__).parent / "assets"
+    integration_path = Path(__file__).parent
+    assets_path = integration_path / "assets"
+    www_path = integration_path / "www"
     await hass.http.async_register_static_paths(
-        [StaticPathConfig(f"/api/{DOMAIN}/assets", str(assets_path), True)]
+        [
+            StaticPathConfig(f"/api/{DOMAIN}/assets", str(assets_path), True),
+            StaticPathConfig(f"/api/{DOMAIN}/www", str(www_path), True),
+        ]
     )
     hass.data[registered_key] = True
 

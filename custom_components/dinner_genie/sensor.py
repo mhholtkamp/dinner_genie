@@ -15,6 +15,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     coordinator = hass.data[DOMAIN][entry.entry_id]
     entities: list[SensorEntity] = [
         DinnerGenieRecipeCountSensor(coordinator),
+        DinnerGenieAllRecipesSensor(coordinator),
         DinnerGenieRandomRecipeSensor(coordinator),
         DinnerGenieWeekMenuSensor(coordinator),
     ]
@@ -108,6 +109,17 @@ def _recipe_attributes(recipe: dict[str, Any] | None) -> dict[str, Any]:
     }
 
 
+def _recipes_for_dashboard(recipes: Any) -> list[dict[str, Any]]:
+    if not isinstance(recipes, list):
+        return []
+
+    result: list[dict[str, Any]] = []
+    for recipe in recipes:
+        if not isinstance(recipe, dict):
+            continue
+        result.append(_recipe_attributes(recipe))
+    return result
+
 class DinnerGenieRecipeCountSensor(DinnerGenieBaseSensor):
     _attr_name = "Aantal recepten"
     _attr_native_unit_of_measurement = "recepten"
@@ -121,6 +133,36 @@ class DinnerGenieRecipeCountSensor(DinnerGenieBaseSensor):
     def native_value(self):
         recipes = (self.coordinator.data or {}).get("recipes") or {}
         return recipes.get("count", len(recipes.get("recipes", []) or []))
+
+    @property
+    def extra_state_attributes(self):
+        recipes = (self.coordinator.data or {}).get("recipes") or {}
+        recipe_list = recipes.get("recipes", []) or []
+        return {"recipes": _recipes_for_dashboard(recipe_list)}
+
+
+class DinnerGenieAllRecipesSensor(DinnerGenieBaseSensor):
+    _attr_name = "Recepten"
+    _attr_icon = "mdi:book-open-variant"
+
+    def __init__(self, coordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{coordinator.entry.entry_id}_all_recipes"
+
+    @property
+    def native_value(self):
+        recipes = (self.coordinator.data or {}).get("recipes") or {}
+        count = recipes.get("count", len(recipes.get("recipes", []) or []))
+        return f"{count} recepten"
+
+    @property
+    def extra_state_attributes(self):
+        recipes = (self.coordinator.data or {}).get("recipes") or {}
+        recipe_list = recipes.get("recipes", []) or []
+        return {
+            "count": recipes.get("count", len(recipe_list)),
+            "recipes": _recipes_for_dashboard(recipe_list),
+        }
 
 
 class DinnerGenieRandomRecipeSensor(DinnerGenieBaseSensor):

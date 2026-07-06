@@ -1,0 +1,42 @@
+views:
+  - type: sections
+    title: Dinner Genie
+    path: dinner-genie
+    icon: mdi:silverware-fork-knife
+    max_columns: 3
+    sections:
+      - type: grid
+        column_span: 3
+        cards:
+          - type: custom:dinner-genie-card
+            mode: week
+            title: 🍽️ Weekmenu
+            max_days: 7
+            generate_button: button.dinner_genie_genereer_weekmenu
+
+  - type: sections
+    title: Recepten
+    path: recepten
+    icon: mdi:book-open-variant
+    max_columns: 3
+    sections:
+      - type: grid
+        column_span: 3
+        cards:
+          - type: custom:dinner-genie-card
+            mode: recipes
+            title: 📖 Recepten
+            recipes_entity: sensor.dinner_genie_recepten
+
+  - type: sections
+    title: Boodschappen
+    path: boodschappen
+    icon: mdi:cart
+    max_columns: 2
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: todo-list
+            entity: todo.dinner_genie_boodschappen
+            title: Boodschappen

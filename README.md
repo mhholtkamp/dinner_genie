@@ -122,3 +122,38 @@ button.dinner_genie_vervang_dag_7
 ```
 
 Als je een dag vervangt, kiest Dinner Genie een gerecht dat nog niet in de andere dagen van het weekmenu staat. Daarna wordt de boodschappenlijst opnieuw opgebouwd op basis van het actuele weekmenu.
+
+## Lovelace card
+
+Vanaf v2.3.0 bevat Dinner Genie een eigen Lovelace card. Voeg deze resource toe in Home Assistant:
+
+```text
+/api/dinner_genie/www/dinner-genie-card.js
+```
+
+Type: JavaScript module.
+
+Voorbeeld weekmenu:
+
+```yaml
+type: custom:dinner-genie-card
+mode: week
+title: 🍽️ Weekmenu
+generate_button: button.dinner_genie_genereer_weekmenu
+```
+
+Voorbeeld receptenoverzicht:
+
+```yaml
+type: custom:dinner-genie-card
+mode: recipes
+title: 📖 Recepten
+recipes_entity: sensor.dinner_genie_recepten
+```
+
+Een compleet dashboard staat in:
+
+```text
+examples/dashboard_lovelace_card.yaml
+custom_components/dinner_genie/examples/dashboard_lovelace_card.yaml
+```

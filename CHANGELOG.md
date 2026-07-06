@@ -1,3 +1,12 @@
+## 2.3.0
+
+- Eigen Lovelace card toegevoegd: `custom:dinner-genie-card`.
+- Receptenoverzicht toegevoegd via `sensor.dinner_genie_recepten`.
+- Card ondersteunt weekmenu en receptenmodus.
+- Receptdetails worden in de card getoond.
+- Recepten kunnen worden gezocht en gefilterd.
+- Voorbeelddashboard voor de Lovelace card toegevoegd.
+
 ## 2.2.0
 
 - Knoppen toegevoegd om één dag uit het weekmenu te vervangen.
