@@ -1,6 +1,7 @@
 
-const DINNER_GENIE_CARD_VERSION = '2.3.9';
+const DINNER_GENIE_CARD_VERSION = '2.4.0';
 const DINNER_GENIE_CARD_TAG = 'dinner-genie-card';
+const DINNER_GENIE_CARD_V2_TAG = 'dinner-genie-card-v2';
 const DINNER_GENIE_CARD_VERSIONED_TAG = 'dinner-genie-card-v239';
 
 class DinnerGenieCard extends HTMLElement {
@@ -83,8 +84,37 @@ class DinnerGenieCard extends HTMLElement {
   }
 
   _callButton(entityId) {
-    if (!entityId || !this._hass) return;
-    this._hass.callService('button', 'press', { entity_id: entityId });
+    const resolvedEntityId = this._resolveButtonEntity(entityId);
+    if (!resolvedEntityId || !this._hass) {
+      console.warn(`Dinner Genie Card v${DINNER_GENIE_CARD_VERSION}: button entity niet gevonden`, entityId);
+      return;
+    }
+    this._hass.callService('button', 'press', { entity_id: resolvedEntityId });
+  }
+
+  _resolveButtonEntity(entityId) {
+    if (entityId && this._state(entityId)) return entityId;
+    if (!this._hass?.states) return entityId;
+
+    const preferred = [
+      'button.dinner_genie_genereer_weekmenu',
+      'button.dinner_genie_generate_weekmenu',
+    ];
+    const preferredMatch = preferred.find((candidate) => this._state(candidate));
+    if (preferredMatch) return preferredMatch;
+
+    const entries = Object.entries(this._hass.states);
+    const generateButton = entries.find(([candidate, state]) => {
+      if (!candidate.startsWith('button.')) return false;
+      const haystack = `${candidate} ${state?.attributes?.friendly_name || ''}`.toLowerCase();
+      return haystack.includes('dinner_genie') && (
+        haystack.includes('genereer') ||
+        haystack.includes('generate') ||
+        haystack.includes('weekmenu') ||
+        haystack.includes('week_menu')
+      );
+    });
+    return generateButton?.[0] || entityId;
   }
 
   _isInteracting() {
@@ -469,7 +499,11 @@ class DinnerGenieCard extends HTMLElement {
   _bindEvents() {
     const root = this.shadowRoot || this;
     root.querySelectorAll('[data-action="generate"]').forEach((button) => {
-      button.addEventListener('click', () => this._callButton(this.config.generate_button));
+      button.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        this._callButton(this.config.generate_button);
+      });
     });
     root.querySelectorAll('[data-action="replace"]').forEach((button) => {
       button.addEventListener('click', (event) => {
@@ -547,6 +581,9 @@ if (!customElements.get(DINNER_GENIE_CARD_TAG)) {
 } else {
   console.info(`Dinner Genie Card v${DINNER_GENIE_CARD_VERSION} loaded after element was already registered`);
 }
+if (!customElements.get(DINNER_GENIE_CARD_V2_TAG)) {
+  customElements.define(DINNER_GENIE_CARD_V2_TAG, class DinnerGenieCardV2 extends DinnerGenieCard {});
+}
 if (!customElements.get(DINNER_GENIE_CARD_VERSIONED_TAG)) {
   customElements.define(DINNER_GENIE_CARD_VERSIONED_TAG, class DinnerGenieCardV239 extends DinnerGenieCard {});
 }
@@ -555,6 +592,11 @@ window.customCards.push({
   type: DINNER_GENIE_CARD_TAG,
   name: `Dinner Genie Card v${DINNER_GENIE_CARD_VERSION}`,
   description: 'Weekmenu en recepten voor Dinner Genie',
+});
+window.customCards.push({
+  type: DINNER_GENIE_CARD_V2_TAG,
+  name: `Dinner Genie Card v2`,
+  description: 'Nieuwe Dinner Genie card met geisoleerde frontend-state',
 });
 window.customCards.push({
   type: DINNER_GENIE_CARD_VERSIONED_TAG,

@@ -8,7 +8,7 @@ views:
       - type: grid
         column_span: 3
         cards:
-          - type: custom:dinner-genie-card
+          - type: custom:dinner-genie-card-v2
             mode: week
             title: 🍽️ Weekmenu
             days_entity: number.dinner_genie_aantal_dagen
@@ -24,7 +24,7 @@ views:
       - type: grid
         column_span: 3
         cards:
-          - type: custom:dinner-genie-card
+          - type: custom:dinner-genie-card-v2
             mode: recipes
             title: 📖 Recepten
             recipes_entity: sensor.dinner_genie_recepten

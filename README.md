@@ -136,24 +136,25 @@ Type: JavaScript module.
 Als Home Assistant een oude versie blijft laden, voeg tijdelijk een versie-query toe, bijvoorbeeld:
 
 ```text
-/api/dinner_genie/www/dinner-genie-card.js?v=2.3.9
+/api/dinner_genie/www/dinner-genie-card.js?v=2.4.0
 ```
 
-Voor cache-diagnose kun je tijdelijk ook de versie-specifieke kaart gebruiken:
+Gebruik voor nieuwe dashboards de v2-kaart. Die omzeilt oude frontend-registraties van eerdere card-versies:
 
 ```yaml
-type: custom:dinner-genie-card-v239
+type: custom:dinner-genie-card-v2
 mode: week
 title: 🍽️ Weekmenu
 days_entity: number.dinner_genie_aantal_dagen
 generate_button: button.dinner_genie_genereer_weekmenu
-debug: true
+# Tijdelijk aanzetten bij frontend-cache of entity-problemen:
+# debug: true
 ```
 
 Voorbeeld weekmenu:
 
 ```yaml
-type: custom:dinner-genie-card
+type: custom:dinner-genie-card-v2
 mode: week
 title: 🍽️ Weekmenu
 days_entity: number.dinner_genie_aantal_dagen
@@ -165,7 +166,7 @@ generate_button: button.dinner_genie_genereer_weekmenu
 Voorbeeld receptenoverzicht:
 
 ```yaml
-type: custom:dinner-genie-card
+type: custom:dinner-genie-card-v2
 mode: recipes
 title: 📖 Recepten
 recipes_entity: sensor.dinner_genie_recepten

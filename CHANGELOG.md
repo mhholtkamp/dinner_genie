@@ -1,3 +1,9 @@
+## 2.4.0
+
+- Introduceert `custom:dinner-genie-card-v2` als permanente kaartnaam voor de nieuwe frontend-code.
+- Houdt `custom:dinner-genie-card` beschikbaar voor backwards compatibility.
+- Maakt de weekmenu vernieuwen-knop robuuster als Home Assistant de generate-button entity anders noemt.
+
 ## 2.3.9
 
 - Registreert naast `custom:dinner-genie-card` ook `custom:dinner-genie-card-v239` om frontend-cache en oude custom-element registraties te omzeilen.
