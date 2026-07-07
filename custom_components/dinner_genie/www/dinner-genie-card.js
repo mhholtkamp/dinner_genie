@@ -13,11 +13,18 @@ class DinnerGenieCard extends HTMLElement {
     this._search = '';
     this._dietFilter = 'all';
     this._categoryFilter = 'all';
+    this._lastRenderSignature = '';
+    this._dialogScrollTop = 0;
+    this._dialogTouchY = null;
+    this._rendered = false;
   }
 
   set hass(hass) {
     this._hass = hass;
-    this.render();
+    const signature = this._renderSignature();
+    if (!this._rendered || signature !== this._lastRenderSignature) {
+      this.render();
+    }
   }
 
   getCardSize() {
@@ -39,6 +46,39 @@ class DinnerGenieCard extends HTMLElement {
   _callButton(entityId) {
     if (!entityId || !this._hass) return;
     this._hass.callService('button', 'press', { entity_id: entityId });
+  }
+
+  _renderSignature() {
+    if (!this.config || !this._hass) return '';
+    const mode = this.config.mode || 'week';
+    if (mode === 'recipes') {
+      const state = this._state(this.config.recipes_entity);
+      return JSON.stringify({
+        mode,
+        title: this.config.title || '',
+        recipes_entity: this.config.recipes_entity,
+        state: state?.state || '',
+        recipes: state?.attributes?.recipes || [],
+      });
+    }
+
+    const maxDays = Number(this.config.max_days || 7);
+    const days = [];
+    for (let day = 1; day <= maxDays; day += 1) {
+      const entityId = this._dayEntity(day);
+      const state = this._state(entityId);
+      days.push({
+        entity_id: entityId,
+        state: state?.state || '',
+        attributes: state?.attributes || {},
+      });
+    }
+    return JSON.stringify({
+      mode,
+      title: this.config.title || '',
+      max_days: maxDays,
+      days,
+    });
   }
 
   _recipeFromEntity(entityId) {
@@ -98,11 +138,13 @@ class DinnerGenieCard extends HTMLElement {
 
   _openRecipe(recipe) {
     this._selectedRecipe = recipe;
+    this._dialogScrollTop = 0;
     this.render();
   }
 
   _closeRecipe() {
     this._selectedRecipe = null;
+    this._dialogScrollTop = 0;
     this.render();
   }
 
@@ -179,7 +221,7 @@ class DinnerGenieCard extends HTMLElement {
         <div class="header-row">
           <div>
             <h2>${this._escape(this.config.title || '📖 Recepten')}</h2>
-            <p class="muted">${recipes.length} van ${this._allRecipes().length} recepten</p>
+            <p class="muted" data-role="recipe-count">${recipes.length} van ${this._allRecipes().length} recepten</p>
           </div>
         </div>
         <div class="filters">
@@ -194,7 +236,7 @@ class DinnerGenieCard extends HTMLElement {
             ${categories.map((category) => `<option value="${this._escape(category)}" ${this._categoryFilter === category ? 'selected' : ''}>${this._escape(category)}</option>`).join('')}
           </select>
         </div>
-        <div class="grid recipes-grid">
+        <div class="grid recipes-grid" data-role="recipe-grid">
           ${recipes.map((recipe) => this._renderMealCard(recipe, null, '#F28C28')).join('') || '<p class="empty">Geen recepten gevonden.</p>'}
         </div>
       </ha-card>
@@ -228,7 +270,7 @@ class DinnerGenieCard extends HTMLElement {
     const activeId = activeElement?.id || '';
     const selectionStart = activeElement && 'selectionStart' in activeElement ? activeElement.selectionStart : null;
     const selectionEnd = activeElement && 'selectionEnd' in activeElement ? activeElement.selectionEnd : null;
-    const dialogScrollTop = this.querySelector('.dialog')?.scrollTop ?? 0;
+    const dialogScrollTop = this.querySelector('.dialog')?.scrollTop ?? this._dialogScrollTop;
     const mode = this.config.mode || 'week';
     this.innerHTML = `
       <style>${this._styles()}</style>
@@ -236,11 +278,16 @@ class DinnerGenieCard extends HTMLElement {
     `;
     this._bindEvents();
     this._restoreRenderState(activeId, selectionStart, selectionEnd, dialogScrollTop);
+    this._lastRenderSignature = this._renderSignature();
+    this._rendered = true;
   }
 
   _restoreRenderState(activeId, selectionStart, selectionEnd, dialogScrollTop) {
     const dialog = this.querySelector('.dialog');
-    if (dialog) dialog.scrollTop = dialogScrollTop;
+    if (dialog) {
+      this._dialogScrollTop = dialogScrollTop;
+      dialog.scrollTop = dialogScrollTop;
+    }
 
     if (!activeId) return;
     const activeElement = this.querySelector(`#${activeId}`);
@@ -259,8 +306,58 @@ class DinnerGenieCard extends HTMLElement {
         refreshedElement.setSelectionRange(selectionStart, selectionEnd);
       }
       const refreshedDialog = this.querySelector('.dialog');
-      if (refreshedDialog) refreshedDialog.scrollTop = dialogScrollTop;
+      if (refreshedDialog) {
+        this._dialogScrollTop = dialogScrollTop;
+        refreshedDialog.scrollTop = dialogScrollTop;
+      }
     });
+  }
+
+  _renderRecipeResults() {
+    const recipes = this._filteredRecipes();
+    const count = this.querySelector('[data-role="recipe-count"]');
+    if (count) count.textContent = `${recipes.length} van ${this._allRecipes().length} recepten`;
+
+    const grid = this.querySelector('[data-role="recipe-grid"]');
+    if (!grid) return;
+    grid.innerHTML = recipes.map((recipe) => this._renderMealCard(recipe, null, '#F28C28')).join('') || '<p class="empty">Geen recepten gevonden.</p>';
+    this._bindDetailButtons(grid);
+  }
+
+  _bindDetailButtons(root = this) {
+    root.querySelectorAll('[data-action="details"]').forEach((button) => {
+      button.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const entityId = button.getAttribute('data-entity');
+        const recipeId = button.getAttribute('data-recipe-id');
+        const recipe = entityId ? this._recipeFromEntity(entityId) : this._allRecipes().find((item) => String(item.recipe_id || item.id) === recipeId);
+        this._openRecipe(recipe);
+      });
+    });
+  }
+
+  _containDialogWheel(event) {
+    const dialog = event.currentTarget;
+    const atTop = dialog.scrollTop <= 0 && event.deltaY < 0;
+    const atBottom = dialog.scrollTop + dialog.clientHeight >= dialog.scrollHeight - 1 && event.deltaY > 0;
+    if (atTop || atBottom) event.preventDefault();
+    event.stopPropagation();
+  }
+
+  _containDialogTouchStart(event) {
+    this._dialogTouchY = event.touches?.[0]?.clientY ?? null;
+  }
+
+  _containDialogTouchMove(event) {
+    const dialog = event.currentTarget;
+    const currentY = event.touches?.[0]?.clientY;
+    if (this._dialogTouchY === null || currentY === undefined) return;
+    const deltaY = this._dialogTouchY - currentY;
+    const atTop = dialog.scrollTop <= 0 && deltaY < 0;
+    const atBottom = dialog.scrollTop + dialog.clientHeight >= dialog.scrollHeight - 1 && deltaY > 0;
+    if (atTop || atBottom) event.preventDefault();
+    event.stopPropagation();
+    this._dialogTouchY = currentY;
   }
 
   _bindEvents() {
@@ -274,15 +371,7 @@ class DinnerGenieCard extends HTMLElement {
         this._callButton(this._replaceButton(day));
       });
     });
-    this.querySelectorAll('[data-action="details"]').forEach((button) => {
-      button.addEventListener('click', (event) => {
-        event.stopPropagation();
-        const entityId = button.getAttribute('data-entity');
-        const recipeId = button.getAttribute('data-recipe-id');
-        const recipe = entityId ? this._recipeFromEntity(entityId) : this._allRecipes().find((item) => String(item.recipe_id || item.id) === recipeId);
-        this._openRecipe(recipe);
-      });
-    });
+    this._bindDetailButtons();
     this.querySelectorAll('[data-action="close"]').forEach((item) => {
       item.addEventListener('click', (event) => {
         if (event.target === item || item.classList.contains('close')) this._closeRecipe();
@@ -290,15 +379,18 @@ class DinnerGenieCard extends HTMLElement {
     });
     const dialog = this.querySelector('.dialog');
     if (dialog) {
-      dialog.addEventListener('wheel', (event) => event.stopPropagation(), { passive: true });
-      dialog.addEventListener('touchmove', (event) => event.stopPropagation(), { passive: true });
+      dialog.scrollTop = this._dialogScrollTop;
+      dialog.addEventListener('scroll', () => { this._dialogScrollTop = dialog.scrollTop; });
+      dialog.addEventListener('wheel', (event) => this._containDialogWheel(event), { passive: false });
+      dialog.addEventListener('touchstart', (event) => this._containDialogTouchStart(event), { passive: true });
+      dialog.addEventListener('touchmove', (event) => this._containDialogTouchMove(event), { passive: false });
     }
     const search = this.querySelector('#search');
-    if (search) search.addEventListener('input', (event) => { this._search = event.target.value; this.render(); });
+    if (search) search.addEventListener('input', (event) => { this._search = event.target.value; this._renderRecipeResults(); });
     const diet = this.querySelector('#diet');
-    if (diet) diet.addEventListener('change', (event) => { this._dietFilter = event.target.value; this.render(); });
+    if (diet) diet.addEventListener('change', (event) => { this._dietFilter = event.target.value; this._renderRecipeResults(); });
     const category = this.querySelector('#category');
-    if (category) category.addEventListener('change', (event) => { this._categoryFilter = event.target.value; this.render(); });
+    if (category) category.addEventListener('change', (event) => { this._categoryFilter = event.target.value; this._renderRecipeResults(); });
   }
 
   _styles() {

@@ -1,3 +1,9 @@
+## 2.3.2
+
+- Voorkomt onnodige Lovelace card-renders tijdens zoeken en popupgebruik.
+- Zoeken werkt de resultaten bij zonder het zoekveld opnieuw te renderen.
+- Receptpopup houdt scrollpositie vast en voorkomt scrollen van de dashboardpagina erachter.
+
 ## 2.3.1
 
 - Lovelace card behoudt focus en cursorpositie tijdens zoeken.
