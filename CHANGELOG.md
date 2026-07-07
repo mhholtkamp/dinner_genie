@@ -1,3 +1,7 @@
+## 2.3.9
+
+- Registreert naast `custom:dinner-genie-card` ook `custom:dinner-genie-card-v239` om frontend-cache en oude custom-element registraties te omzeilen.
+
 ## 2.3.8
 
 - Verbergt trailing `unavailable`/`unknown` dagen in het weekmenu als het aantal-dagen entity niet beschikbaar is.

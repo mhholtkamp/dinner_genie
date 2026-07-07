@@ -1,5 +1,7 @@
 
-const DINNER_GENIE_CARD_VERSION = '2.3.8';
+const DINNER_GENIE_CARD_VERSION = '2.3.9';
+const DINNER_GENIE_CARD_TAG = 'dinner-genie-card';
+const DINNER_GENIE_CARD_VERSIONED_TAG = 'dinner-genie-card-v239';
 
 class DinnerGenieCard extends HTMLElement {
   constructor() {
@@ -540,14 +542,22 @@ class DinnerGenieCard extends HTMLElement {
   }
 }
 
-if (!customElements.get('dinner-genie-card')) {
-  customElements.define('dinner-genie-card', DinnerGenieCard);
+if (!customElements.get(DINNER_GENIE_CARD_TAG)) {
+  customElements.define(DINNER_GENIE_CARD_TAG, DinnerGenieCard);
 } else {
   console.info(`Dinner Genie Card v${DINNER_GENIE_CARD_VERSION} loaded after element was already registered`);
 }
+if (!customElements.get(DINNER_GENIE_CARD_VERSIONED_TAG)) {
+  customElements.define(DINNER_GENIE_CARD_VERSIONED_TAG, class DinnerGenieCardV239 extends DinnerGenieCard {});
+}
 window.customCards = window.customCards || [];
 window.customCards.push({
-  type: 'dinner-genie-card',
+  type: DINNER_GENIE_CARD_TAG,
   name: `Dinner Genie Card v${DINNER_GENIE_CARD_VERSION}`,
   description: 'Weekmenu en recepten voor Dinner Genie',
+});
+window.customCards.push({
+  type: DINNER_GENIE_CARD_VERSIONED_TAG,
+  name: `Dinner Genie Card v${DINNER_GENIE_CARD_VERSION} direct`,
+  description: 'Versie-specifieke Dinner Genie card voor cache-diagnose',
 });

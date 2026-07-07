@@ -136,7 +136,18 @@ Type: JavaScript module.
 Als Home Assistant een oude versie blijft laden, voeg tijdelijk een versie-query toe, bijvoorbeeld:
 
 ```text
-/api/dinner_genie/www/dinner-genie-card.js?v=2.3.8
+/api/dinner_genie/www/dinner-genie-card.js?v=2.3.9
+```
+
+Voor cache-diagnose kun je tijdelijk ook de versie-specifieke kaart gebruiken:
+
+```yaml
+type: custom:dinner-genie-card-v239
+mode: week
+title: 🍽️ Weekmenu
+days_entity: number.dinner_genie_aantal_dagen
+generate_button: button.dinner_genie_genereer_weekmenu
+debug: true
 ```
 
 Voorbeeld weekmenu:
