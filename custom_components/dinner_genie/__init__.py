@@ -25,7 +25,7 @@ async def _async_register_static_assets(hass: HomeAssistant) -> None:
     await hass.http.async_register_static_paths(
         [
             StaticPathConfig(f"/api/{DOMAIN}/assets", str(assets_path), True),
-            StaticPathConfig(f"/api/{DOMAIN}/www", str(www_path), True),
+            StaticPathConfig(f"/api/{DOMAIN}/www", str(www_path), False),
         ]
     )
     hass.data[registered_key] = True

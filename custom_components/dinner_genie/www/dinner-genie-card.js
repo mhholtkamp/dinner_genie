@@ -1,8 +1,11 @@
 
+const DINNER_GENIE_CARD_VERSION = '2.3.6';
+
 class DinnerGenieCard extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
+    console.info(`Dinner Genie Card v${DINNER_GENIE_CARD_VERSION}`);
   }
 
   disconnectedCallback() {

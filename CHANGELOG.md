@@ -1,3 +1,8 @@
+## 2.3.6
+
+- Serveert de Lovelace card JavaScript zonder statische cache zodat frontend-fixes sneller zichtbaar worden.
+- Logt de geladen Dinner Genie card-versie in de browserconsole voor troubleshooting.
+
 ## 2.3.5
 
 - Stelt automatische card-renders uit zolang zoek/filter focus actief is of de receptpopup openstaat.

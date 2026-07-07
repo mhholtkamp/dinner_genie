@@ -133,6 +133,12 @@ Vanaf v2.3.0 bevat Dinner Genie een eigen Lovelace card. Voeg deze resource toe 
 
 Type: JavaScript module.
 
+Als Home Assistant een oude versie blijft laden, voeg tijdelijk een versie-query toe, bijvoorbeeld:
+
+```text
+/api/dinner_genie/www/dinner-genie-card.js?v=2.3.6
+```
+
 Voorbeeld weekmenu:
 
 ```yaml
