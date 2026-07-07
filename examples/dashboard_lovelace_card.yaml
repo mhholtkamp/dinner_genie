@@ -11,6 +11,7 @@ views:
           - type: custom:dinner-genie-card
             mode: week
             title: 🍽️ Weekmenu
+            days_entity: number.dinner_genie_aantal_dagen
             max_days: 7
             generate_button: button.dinner_genie_genereer_weekmenu
 

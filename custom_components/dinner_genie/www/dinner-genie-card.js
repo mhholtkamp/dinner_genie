@@ -1,5 +1,5 @@
 
-const DINNER_GENIE_CARD_VERSION = '2.3.6';
+const DINNER_GENIE_CARD_VERSION = '2.3.7';
 
 class DinnerGenieCard extends HTMLElement {
   constructor() {
@@ -18,6 +18,7 @@ class DinnerGenieCard extends HTMLElement {
       max_days: 7,
       dashboard_path: '/dinner-genie',
       generate_button: 'button.dinner_genie_genereer_weekmenu',
+      days_entity: 'number.dinner_genie_aantal_dagen',
       recipes_entity: 'sensor.dinner_genie_recepten',
       ...config,
     };
@@ -56,6 +57,14 @@ class DinnerGenieCard extends HTMLElement {
 
   _replaceButton(day) {
     return this.config[`replace_day_${day}_button`] || `button.dinner_genie_vervang_dag_${day}`;
+  }
+
+  _weekDayCount() {
+    const configuredMax = Number(this.config.max_days || 7);
+    const state = this._state(this.config.days_entity);
+    const entityDays = Number(state?.state);
+    const days = Number.isFinite(entityDays) && entityDays > 0 ? entityDays : configuredMax;
+    return Math.min(7, Math.max(1, Math.trunc(days)));
   }
 
   _callButton(entityId) {
@@ -99,7 +108,8 @@ class DinnerGenieCard extends HTMLElement {
       });
     }
 
-    const maxDays = Number(this.config.max_days || 7);
+    const maxDays = this._weekDayCount();
+    const daysState = this._state(this.config.days_entity);
     const days = [];
     for (let day = 1; day <= maxDays; day += 1) {
       const entityId = this._dayEntity(day);
@@ -114,6 +124,8 @@ class DinnerGenieCard extends HTMLElement {
       mode,
       title: this.config.title || '',
       max_days: maxDays,
+      days_entity: this.config.days_entity,
+      days_state: daysState?.state || '',
       days,
     });
   }
@@ -192,6 +204,7 @@ class DinnerGenieCard extends HTMLElement {
     const prep = this._escape(recipe?.prep_time || '');
     const diet = this._escape(recipe?.diet_type || 'geen dieet');
     const category = this._escape(recipe?.category || '');
+    const categoryHtml = category ? `🏷️ ${category}` : '&nbsp;';
     return `
       <article class="dg-card" style="--accent:${color}">
         <div class="dg-card-header">
@@ -202,7 +215,7 @@ class DinnerGenieCard extends HTMLElement {
         <div class="dg-card-body">
           <h3>${title}</h3>
           <div class="meta">⏱ ${prep} <span>${this._dietIcon(recipe?.diet_type)} ${diet}</span></div>
-          ${category ? `<div class="meta">🏷️ ${category}</div>` : ''}
+          <div class="meta category-meta">${categoryHtml}</div>
           <button class="detail-button" data-action="details" data-entity="${this._escape(recipe?.entity_id || '')}" data-recipe-id="${this._escape(recipe?.recipe_id || recipe?.id || '')}">Details bekijken</button>
         </div>
       </article>
@@ -211,7 +224,7 @@ class DinnerGenieCard extends HTMLElement {
 
   _renderWeek() {
     const colors = ['#F28C28', '#5BAE5B', '#4A90E2', '#8E6CCF', '#D96C6C', '#46B8B8', '#D9B44A'];
-    const maxDays = Number(this.config.max_days || 7);
+    const maxDays = this._weekDayCount();
     const cards = [];
     for (let day = 1; day <= maxDays; day += 1) {
       const recipe = this._recipeFromEntity(this._dayEntity(day));
@@ -472,17 +485,19 @@ class DinnerGenieCard extends HTMLElement {
       h2 { margin:0; font-size:28px; line-height:1.1; }
       .muted { margin:6px 0 0 0; opacity:.72; }
       .header-action { border:0; border-radius:16px; background:#F28C28; color:white; padding:10px 14px; font-weight:700; cursor:pointer; }
-      .grid { display:grid; gap:14px; }
+      .grid { display:grid; gap:14px; align-items:stretch; }
+      .grid > * { min-width:0; }
       .week-grid { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
       .recipes-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
-      .dg-card { --accent:#F28C28; background:#1f1f1f; border-radius:22px; overflow:hidden; border-top:5px solid var(--accent); box-shadow:0 8px 24px rgba(0,0,0,.28); }
+      .dg-card { --accent:#F28C28; background:#1f1f1f; border-radius:22px; overflow:hidden; border-top:5px solid var(--accent); box-shadow:0 8px 24px rgba(0,0,0,.28); height:100%; display:flex; flex-direction:column; }
       .dg-card-header { display:flex; justify-content:space-between; align-items:center; padding:12px 14px; color:white; font-size:18px; }
       .icon-button { border:0; width:32px; height:32px; border-radius:50%; background:var(--accent); color:white; font-size:18px; cursor:pointer; }
       .recipe-image { width:100%; height:155px; object-fit:cover; display:block; }
-      .dg-card-body { padding:14px; color:white; }
+      .dg-card-body { padding:14px; color:white; flex:1; display:flex; flex-direction:column; }
       .dg-card h3 { margin:0 0 8px 0; font-size:18px; line-height:1.25; min-height:46px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
       .meta { color:#d0d0d0; font-size:14px; line-height:1.4; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-      .detail-button { margin-top:14px; width:100%; border:0; border-radius:16px; background:var(--accent); color:white; padding:11px; font-weight:700; cursor:pointer; }
+      .category-meta { min-height:20px; }
+      .detail-button { margin-top:auto; width:100%; border:0; border-radius:16px; background:var(--accent); color:white; padding:11px; font-weight:700; cursor:pointer; }
       .filters { display:grid; grid-template-columns: 1.5fr 1fr 1fr; gap:10px; margin-bottom:16px; }
       input, select { border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.06); color:var(--primary-text-color); border-radius:14px; padding:10px; }
       .empty { opacity:.7; }

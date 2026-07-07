@@ -1,3 +1,8 @@
+## 2.3.7
+
+- Weekmenu-card gebruikt nu `number.dinner_genie_aantal_dagen` om alleen het ingestelde aantal dagen te tonen.
+- Weekmenu- en receptenkaarten blijven even hoog als een recept geen categorie heeft.
+
 ## 2.3.6
 
 - Serveert de Lovelace card JavaScript zonder statische cache zodat frontend-fixes sneller zichtbaar worden.
