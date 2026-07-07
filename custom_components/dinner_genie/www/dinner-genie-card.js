@@ -5,6 +5,10 @@ class DinnerGenieCard extends HTMLElement {
     this.attachShadow({ mode: 'open' });
   }
 
+  disconnectedCallback() {
+    this._unlockPageScroll();
+  }
+
   setConfig(config) {
     this.config = {
       mode: 'week',
@@ -27,6 +31,9 @@ class DinnerGenieCard extends HTMLElement {
   set hass(hass) {
     this._hass = hass;
     const signature = this._renderSignature();
+    if (this._rendered && this._isInteracting()) {
+      return;
+    }
     if (!this._rendered || signature !== this._lastRenderSignature) {
       this.render();
     }
@@ -51,6 +58,28 @@ class DinnerGenieCard extends HTMLElement {
   _callButton(entityId) {
     if (!entityId || !this._hass) return;
     this._hass.callService('button', 'press', { entity_id: entityId });
+  }
+
+  _isInteracting() {
+    if (this._selectedRecipe) return true;
+    const activeElement = this.shadowRoot?.activeElement;
+    return ['search', 'diet', 'category'].includes(activeElement?.id);
+  }
+
+  _lockPageScroll() {
+    if (this._pageScrollLocked) return;
+    this._pageScrollLocked = true;
+    this._previousBodyOverflow = document.body.style.overflow;
+    this._previousDocumentOverflow = document.documentElement.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+  }
+
+  _unlockPageScroll() {
+    if (!this._pageScrollLocked) return;
+    document.body.style.overflow = this._previousBodyOverflow || '';
+    document.documentElement.style.overflow = this._previousDocumentOverflow || '';
+    this._pageScrollLocked = false;
   }
 
   _renderSignature() {
@@ -144,12 +173,14 @@ class DinnerGenieCard extends HTMLElement {
   _openRecipe(recipe) {
     this._selectedRecipe = recipe;
     this._dialogScrollTop = 0;
+    this._lockPageScroll();
     this.render();
   }
 
   _closeRecipe() {
     this._selectedRecipe = null;
     this._dialogScrollTop = 0;
+    this._unlockPageScroll();
     this.render();
   }
 
@@ -352,6 +383,13 @@ class DinnerGenieCard extends HTMLElement {
       event.stopPropagation();
       handler(event);
     }, { capture: true });
+    control.addEventListener('blur', () => {
+      setTimeout(() => {
+        if (!this._isInteracting() && this._renderSignature() !== this._lastRenderSignature) {
+          this.render();
+        }
+      }, 0);
+    });
   }
 
   _containDialogWheel(event) {

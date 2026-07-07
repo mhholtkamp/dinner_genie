@@ -1,3 +1,9 @@
+## 2.3.5
+
+- Stelt automatische card-renders uit zolang zoek/filter focus actief is of de receptpopup openstaat.
+- Blokkeert achtergrondscroll zolang de receptpopup open is.
+- Haalt gemiste data-updates pas in nadat zoek/filter focus is verlaten.
+
 ## 2.3.4
 
 - Rendert de Lovelace card in Shadow DOM om zoekfocus en popupscroll te isoleren van Lovelace.
