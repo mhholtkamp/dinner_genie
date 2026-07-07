@@ -1,5 +1,10 @@
 
 class DinnerGenieCard extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+  }
+
   setConfig(config) {
     this.config = {
       mode: 'week',
@@ -266,13 +271,14 @@ class DinnerGenieCard extends HTMLElement {
 
   render() {
     if (!this.config || !this._hass) return;
-    const activeElement = this.contains(document.activeElement) ? document.activeElement : null;
+    const root = this.shadowRoot || this;
+    const activeElement = root.activeElement || (this.contains(document.activeElement) ? document.activeElement : null);
     const activeId = activeElement?.id || '';
     const selectionStart = activeElement && 'selectionStart' in activeElement ? activeElement.selectionStart : null;
     const selectionEnd = activeElement && 'selectionEnd' in activeElement ? activeElement.selectionEnd : null;
-    const dialogScrollTop = this.querySelector('.dialog')?.scrollTop ?? this._dialogScrollTop;
+    const dialogScrollTop = root.querySelector('.dialog')?.scrollTop ?? this._dialogScrollTop;
     const mode = this.config.mode || 'week';
-    this.innerHTML = `
+    root.innerHTML = `
       <style>${this._styles()}</style>
       ${mode === 'recipes' ? this._renderRecipes() : this._renderWeek()}
     `;
@@ -283,14 +289,15 @@ class DinnerGenieCard extends HTMLElement {
   }
 
   _restoreRenderState(activeId, selectionStart, selectionEnd, dialogScrollTop) {
-    const dialog = this.querySelector('.dialog');
+    const root = this.shadowRoot || this;
+    const dialog = root.querySelector('.dialog');
     if (dialog) {
       this._dialogScrollTop = dialogScrollTop;
       dialog.scrollTop = dialogScrollTop;
     }
 
     if (!activeId) return;
-    const activeElement = this.querySelector(`#${activeId}`);
+    const activeElement = root.querySelector(`#${activeId}`);
     if (!activeElement) return;
 
     activeElement.focus({ preventScroll: true });
@@ -299,7 +306,7 @@ class DinnerGenieCard extends HTMLElement {
     }
 
     requestAnimationFrame(() => {
-      const refreshedElement = this.querySelector(`#${activeId}`);
+      const refreshedElement = root.querySelector(`#${activeId}`);
       if (!refreshedElement) return;
       refreshedElement.focus({ preventScroll: true });
       if (selectionStart !== null && selectionEnd !== null && 'setSelectionRange' in refreshedElement) {
@@ -310,16 +317,17 @@ class DinnerGenieCard extends HTMLElement {
 
   _renderRecipeResults() {
     const recipes = this._filteredRecipes();
-    const count = this.querySelector('[data-role="recipe-count"]');
+    const root = this.shadowRoot || this;
+    const count = root.querySelector('[data-role="recipe-count"]');
     if (count) count.textContent = `${recipes.length} van ${this._allRecipes().length} recepten`;
 
-    const grid = this.querySelector('[data-role="recipe-grid"]');
+    const grid = root.querySelector('[data-role="recipe-grid"]');
     if (!grid) return;
     grid.innerHTML = recipes.map((recipe) => this._renderMealCard(recipe, null, '#F28C28')).join('') || '<p class="empty">Geen recepten gevonden.</p>';
     this._bindDetailButtons(grid);
   }
 
-  _bindDetailButtons(root = this) {
+  _bindDetailButtons(root = this.shadowRoot || this) {
     root.querySelectorAll('[data-action="details"]').forEach((button) => {
       button.addEventListener('click', (event) => {
         event.stopPropagation();
@@ -372,15 +380,17 @@ class DinnerGenieCard extends HTMLElement {
   }
 
   _containBackdropScroll(event) {
+    if (event.target !== event.currentTarget) return;
     event.preventDefault();
     event.stopPropagation();
   }
 
   _bindEvents() {
-    this.querySelectorAll('[data-action="generate"]').forEach((button) => {
+    const root = this.shadowRoot || this;
+    root.querySelectorAll('[data-action="generate"]').forEach((button) => {
       button.addEventListener('click', () => this._callButton(this.config.generate_button));
     });
-    this.querySelectorAll('[data-action="replace"]').forEach((button) => {
+    root.querySelectorAll('[data-action="replace"]').forEach((button) => {
       button.addEventListener('click', (event) => {
         event.stopPropagation();
         const day = button.getAttribute('data-day');
@@ -388,12 +398,12 @@ class DinnerGenieCard extends HTMLElement {
       });
     });
     this._bindDetailButtons();
-    this.querySelectorAll('[data-action="close"]').forEach((item) => {
+    root.querySelectorAll('[data-action="close"]').forEach((item) => {
       item.addEventListener('click', (event) => {
         if (event.target === item || item.classList.contains('close')) this._closeRecipe();
       });
     });
-    const dialog = this.querySelector('.dialog');
+    const dialog = root.querySelector('.dialog');
     if (dialog) {
       dialog.scrollTop = this._dialogScrollTop;
       dialog.addEventListener('scroll', () => { this._dialogScrollTop = dialog.scrollTop; });
@@ -401,16 +411,16 @@ class DinnerGenieCard extends HTMLElement {
       dialog.addEventListener('touchstart', (event) => this._containDialogTouchStart(event), { passive: true });
       dialog.addEventListener('touchmove', (event) => this._containDialogTouchMove(event), { capture: true, passive: false });
     }
-    const backdrop = this.querySelector('.dialog-backdrop');
+    const backdrop = root.querySelector('.dialog-backdrop');
     if (backdrop) {
       backdrop.addEventListener('wheel', (event) => this._containBackdropScroll(event), { passive: false });
       backdrop.addEventListener('touchmove', (event) => this._containBackdropScroll(event), { passive: false });
     }
-    const search = this.querySelector('#search');
+    const search = root.querySelector('#search');
     this._bindFilterControl(search, 'input', (event) => { this._search = event.target.value; this._renderRecipeResults(); });
-    const diet = this.querySelector('#diet');
+    const diet = root.querySelector('#diet');
     this._bindFilterControl(diet, 'change', (event) => { this._dietFilter = event.target.value; this._renderRecipeResults(); });
-    const category = this.querySelector('#category');
+    const category = root.querySelector('#category');
     this._bindFilterControl(category, 'change', (event) => { this._categoryFilter = event.target.value; this._renderRecipeResults(); });
   }
 

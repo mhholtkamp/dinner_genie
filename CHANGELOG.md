@@ -1,3 +1,8 @@
+## 2.3.4
+
+- Rendert de Lovelace card in Shadow DOM om zoekfocus en popupscroll te isoleren van Lovelace.
+- Popup-backdrop blokkeert alleen nog scroll-events die echt op de backdrop zelf plaatsvinden.
+
 ## 2.3.3
 
 - Behoudt zoek- en popupstatus als Lovelace de kaartconfig opnieuw aanbiedt.
