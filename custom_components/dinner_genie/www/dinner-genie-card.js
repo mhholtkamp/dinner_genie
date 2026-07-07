@@ -224,12 +224,43 @@ class DinnerGenieCard extends HTMLElement {
 
   render() {
     if (!this.config || !this._hass) return;
+    const activeElement = this.contains(document.activeElement) ? document.activeElement : null;
+    const activeId = activeElement?.id || '';
+    const selectionStart = activeElement && 'selectionStart' in activeElement ? activeElement.selectionStart : null;
+    const selectionEnd = activeElement && 'selectionEnd' in activeElement ? activeElement.selectionEnd : null;
+    const dialogScrollTop = this.querySelector('.dialog')?.scrollTop ?? 0;
     const mode = this.config.mode || 'week';
     this.innerHTML = `
       <style>${this._styles()}</style>
       ${mode === 'recipes' ? this._renderRecipes() : this._renderWeek()}
     `;
     this._bindEvents();
+    this._restoreRenderState(activeId, selectionStart, selectionEnd, dialogScrollTop);
+  }
+
+  _restoreRenderState(activeId, selectionStart, selectionEnd, dialogScrollTop) {
+    const dialog = this.querySelector('.dialog');
+    if (dialog) dialog.scrollTop = dialogScrollTop;
+
+    if (!activeId) return;
+    const activeElement = this.querySelector(`#${activeId}`);
+    if (!activeElement) return;
+
+    activeElement.focus({ preventScroll: true });
+    if (selectionStart !== null && selectionEnd !== null && 'setSelectionRange' in activeElement) {
+      activeElement.setSelectionRange(selectionStart, selectionEnd);
+    }
+
+    requestAnimationFrame(() => {
+      const refreshedElement = this.querySelector(`#${activeId}`);
+      if (!refreshedElement) return;
+      refreshedElement.focus({ preventScroll: true });
+      if (selectionStart !== null && selectionEnd !== null && 'setSelectionRange' in refreshedElement) {
+        refreshedElement.setSelectionRange(selectionStart, selectionEnd);
+      }
+      const refreshedDialog = this.querySelector('.dialog');
+      if (refreshedDialog) refreshedDialog.scrollTop = dialogScrollTop;
+    });
   }
 
   _bindEvents() {
@@ -257,6 +288,11 @@ class DinnerGenieCard extends HTMLElement {
         if (event.target === item || item.classList.contains('close')) this._closeRecipe();
       });
     });
+    const dialog = this.querySelector('.dialog');
+    if (dialog) {
+      dialog.addEventListener('wheel', (event) => event.stopPropagation(), { passive: true });
+      dialog.addEventListener('touchmove', (event) => event.stopPropagation(), { passive: true });
+    }
     const search = this.querySelector('#search');
     if (search) search.addEventListener('input', (event) => { this._search = event.target.value; this.render(); });
     const diet = this.querySelector('#diet');
@@ -286,8 +322,8 @@ class DinnerGenieCard extends HTMLElement {
       .filters { display:grid; grid-template-columns: 1.5fr 1fr 1fr; gap:10px; margin-bottom:16px; }
       input, select { border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.06); color:var(--primary-text-color); border-radius:14px; padding:10px; }
       .empty { opacity:.7; }
-      .dialog-backdrop { position:fixed; inset:0; z-index:999; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; padding:20px; }
-      .dialog { max-width:760px; max-height:90vh; overflow:auto; background:var(--card-background-color); color:var(--primary-text-color); border-radius:24px; padding:20px; position:relative; box-shadow:0 20px 70px rgba(0,0,0,.5); }
+      .dialog-backdrop { position:fixed; inset:0; z-index:999; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; padding:20px; box-sizing:border-box; overflow:hidden; }
+      .dialog { width:min(760px, 100%); max-height:calc(100vh - 40px); overflow:auto; overscroll-behavior:contain; box-sizing:border-box; background:var(--card-background-color); color:var(--primary-text-color); border-radius:24px; padding:20px; position:relative; box-shadow:0 20px 70px rgba(0,0,0,.5); }
       .close { position:absolute; top:10px; right:12px; border:0; background:rgba(0,0,0,.45); color:white; border-radius:50%; width:34px; height:34px; font-size:24px; cursor:pointer; }
       .dialog-image { width:100%; max-height:330px; object-fit:cover; border-radius:18px; }
       .dialog h2 { margin-top:18px; }

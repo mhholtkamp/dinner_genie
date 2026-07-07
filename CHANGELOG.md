@@ -1,3 +1,8 @@
+## 2.3.1
+
+- Lovelace card behoudt focus en cursorpositie tijdens zoeken.
+- Receptpopup behoudt scrollpositie en scrolt binnen de popup.
+
 ## 2.3.0
 
 - Eigen Lovelace card toegevoegd: `custom:dinner-genie-card`.
