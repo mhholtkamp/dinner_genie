@@ -1,3 +1,9 @@
+## 2.3.3
+
+- Behoudt zoek- en popupstatus als Lovelace de kaartconfig opnieuw aanbiedt.
+- Isoleert zoekveld- en filterevents zodat Lovelace de focus niet overneemt.
+- Isoleert popup scroll- en touchevents en voorkomt late scroll-reset na openen.
+
 ## 2.3.2
 
 - Voorkomt onnodige Lovelace card-renders tijdens zoeken en popupgebruik.

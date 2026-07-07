@@ -9,14 +9,14 @@ class DinnerGenieCard extends HTMLElement {
       recipes_entity: 'sensor.dinner_genie_recepten',
       ...config,
     };
-    this._selectedRecipe = null;
-    this._search = '';
-    this._dietFilter = 'all';
-    this._categoryFilter = 'all';
-    this._lastRenderSignature = '';
-    this._dialogScrollTop = 0;
-    this._dialogTouchY = null;
-    this._rendered = false;
+    this._selectedRecipe = this._selectedRecipe ?? null;
+    this._search = this._search ?? '';
+    this._dietFilter = this._dietFilter ?? 'all';
+    this._categoryFilter = this._categoryFilter ?? 'all';
+    this._lastRenderSignature = this._lastRenderSignature ?? '';
+    this._dialogScrollTop = this._dialogScrollTop ?? 0;
+    this._dialogTouchY = this._dialogTouchY ?? null;
+    this._rendered = this._rendered ?? false;
   }
 
   set hass(hass) {
@@ -305,11 +305,6 @@ class DinnerGenieCard extends HTMLElement {
       if (selectionStart !== null && selectionEnd !== null && 'setSelectionRange' in refreshedElement) {
         refreshedElement.setSelectionRange(selectionStart, selectionEnd);
       }
-      const refreshedDialog = this.querySelector('.dialog');
-      if (refreshedDialog) {
-        this._dialogScrollTop = dialogScrollTop;
-        refreshedDialog.scrollTop = dialogScrollTop;
-      }
     });
   }
 
@@ -336,6 +331,21 @@ class DinnerGenieCard extends HTMLElement {
     });
   }
 
+  _stopInteractiveEvent(event) {
+    event.stopPropagation();
+  }
+
+  _bindFilterControl(control, eventName, handler) {
+    if (!control) return;
+    ['click', 'mousedown', 'mouseup', 'pointerdown', 'pointerup', 'focus', 'blur', 'keydown', 'keyup', 'compositionstart', 'compositionupdate', 'compositionend'].forEach((eventType) => {
+      control.addEventListener(eventType, (event) => this._stopInteractiveEvent(event), { capture: true });
+    });
+    control.addEventListener(eventName, (event) => {
+      event.stopPropagation();
+      handler(event);
+    }, { capture: true });
+  }
+
   _containDialogWheel(event) {
     const dialog = event.currentTarget;
     const atTop = dialog.scrollTop <= 0 && event.deltaY < 0;
@@ -345,6 +355,7 @@ class DinnerGenieCard extends HTMLElement {
   }
 
   _containDialogTouchStart(event) {
+    event.stopPropagation();
     this._dialogTouchY = event.touches?.[0]?.clientY ?? null;
   }
 
@@ -358,6 +369,11 @@ class DinnerGenieCard extends HTMLElement {
     if (atTop || atBottom) event.preventDefault();
     event.stopPropagation();
     this._dialogTouchY = currentY;
+  }
+
+  _containBackdropScroll(event) {
+    event.preventDefault();
+    event.stopPropagation();
   }
 
   _bindEvents() {
@@ -381,16 +397,21 @@ class DinnerGenieCard extends HTMLElement {
     if (dialog) {
       dialog.scrollTop = this._dialogScrollTop;
       dialog.addEventListener('scroll', () => { this._dialogScrollTop = dialog.scrollTop; });
-      dialog.addEventListener('wheel', (event) => this._containDialogWheel(event), { passive: false });
+      dialog.addEventListener('wheel', (event) => this._containDialogWheel(event), { capture: true, passive: false });
       dialog.addEventListener('touchstart', (event) => this._containDialogTouchStart(event), { passive: true });
-      dialog.addEventListener('touchmove', (event) => this._containDialogTouchMove(event), { passive: false });
+      dialog.addEventListener('touchmove', (event) => this._containDialogTouchMove(event), { capture: true, passive: false });
+    }
+    const backdrop = this.querySelector('.dialog-backdrop');
+    if (backdrop) {
+      backdrop.addEventListener('wheel', (event) => this._containBackdropScroll(event), { passive: false });
+      backdrop.addEventListener('touchmove', (event) => this._containBackdropScroll(event), { passive: false });
     }
     const search = this.querySelector('#search');
-    if (search) search.addEventListener('input', (event) => { this._search = event.target.value; this._renderRecipeResults(); });
+    this._bindFilterControl(search, 'input', (event) => { this._search = event.target.value; this._renderRecipeResults(); });
     const diet = this.querySelector('#diet');
-    if (diet) diet.addEventListener('change', (event) => { this._dietFilter = event.target.value; this._renderRecipeResults(); });
+    this._bindFilterControl(diet, 'change', (event) => { this._dietFilter = event.target.value; this._renderRecipeResults(); });
     const category = this.querySelector('#category');
-    if (category) category.addEventListener('change', (event) => { this._categoryFilter = event.target.value; this._renderRecipeResults(); });
+    this._bindFilterControl(category, 'change', (event) => { this._categoryFilter = event.target.value; this._renderRecipeResults(); });
   }
 
   _styles() {
@@ -414,8 +435,8 @@ class DinnerGenieCard extends HTMLElement {
       .filters { display:grid; grid-template-columns: 1.5fr 1fr 1fr; gap:10px; margin-bottom:16px; }
       input, select { border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.06); color:var(--primary-text-color); border-radius:14px; padding:10px; }
       .empty { opacity:.7; }
-      .dialog-backdrop { position:fixed; inset:0; z-index:999; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; padding:20px; box-sizing:border-box; overflow:hidden; }
-      .dialog { width:min(760px, 100%); max-height:calc(100vh - 40px); overflow:auto; overscroll-behavior:contain; box-sizing:border-box; background:var(--card-background-color); color:var(--primary-text-color); border-radius:24px; padding:20px; position:relative; box-shadow:0 20px 70px rgba(0,0,0,.5); }
+      .dialog-backdrop { position:fixed; inset:0; z-index:999; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; padding:20px; box-sizing:border-box; overflow:hidden; touch-action:none; }
+      .dialog { width:min(760px, 100%); max-height:calc(100vh - 40px); overflow:auto; overscroll-behavior:contain; box-sizing:border-box; background:var(--card-background-color); color:var(--primary-text-color); border-radius:24px; padding:20px; position:relative; box-shadow:0 20px 70px rgba(0,0,0,.5); touch-action:pan-y; }
       .close { position:absolute; top:10px; right:12px; border:0; background:rgba(0,0,0,.45); color:white; border-radius:50%; width:34px; height:34px; font-size:24px; cursor:pointer; }
       .dialog-image { width:100%; max-height:330px; object-fit:cover; border-radius:18px; }
       .dialog h2 { margin-top:18px; }
