@@ -12,5 +12,5 @@
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/mhholtkamp/dinner_genie/issues",
   "requirements": [],
-  "version": "2.3.7"
+  "version": "2.3.8"
 }

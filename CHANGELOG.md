@@ -1,3 +1,9 @@
+## 2.3.8
+
+- Verbergt trailing `unavailable`/`unknown` dagen in het weekmenu als het aantal-dagen entity niet beschikbaar is.
+- Voegt optionele `debug: true` weergave toe aan de Lovelace card om geladen card-versie en dagenwaarde te controleren.
+- Voorkomt fouten bij dubbele custom-card registratie door Home Assistant frontend caching.
+
 ## 2.3.7
 
 - Weekmenu-card gebruikt nu `number.dinner_genie_aantal_dagen` om alleen het ingestelde aantal dagen te tonen.

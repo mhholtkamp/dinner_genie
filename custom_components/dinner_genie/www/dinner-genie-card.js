@@ -1,5 +1,5 @@
 
-const DINNER_GENIE_CARD_VERSION = '2.3.7';
+const DINNER_GENIE_CARD_VERSION = '2.3.8';
 
 class DinnerGenieCard extends HTMLElement {
   constructor() {
@@ -20,6 +20,7 @@ class DinnerGenieCard extends HTMLElement {
       generate_button: 'button.dinner_genie_genereer_weekmenu',
       days_entity: 'number.dinner_genie_aantal_dagen',
       recipes_entity: 'sensor.dinner_genie_recepten',
+      debug: false,
       ...config,
     };
     this._selectedRecipe = this._selectedRecipe ?? null;
@@ -63,8 +64,20 @@ class DinnerGenieCard extends HTMLElement {
     const configuredMax = Number(this.config.max_days || 7);
     const state = this._state(this.config.days_entity);
     const entityDays = Number(state?.state);
-    const days = Number.isFinite(entityDays) && entityDays > 0 ? entityDays : configuredMax;
+    const inferredDays = this._inferredAvailableDayCount(configuredMax);
+    const days = Number.isFinite(entityDays) && entityDays > 0 ? entityDays : inferredDays;
     return Math.min(7, Math.max(1, Math.trunc(days)));
+  }
+
+  _inferredAvailableDayCount(configuredMax) {
+    let lastAvailableDay = 0;
+    for (let day = 1; day <= Math.min(7, configuredMax); day += 1) {
+      const state = this._state(this._dayEntity(day));
+      if (state && !['unavailable', 'unknown'].includes(state.state)) {
+        lastAvailableDay = day;
+      }
+    }
+    return lastAvailableDay || configuredMax;
   }
 
   _callButton(entityId) {
@@ -228,10 +241,13 @@ class DinnerGenieCard extends HTMLElement {
     const cards = [];
     for (let day = 1; day <= maxDays; day += 1) {
       const recipe = this._recipeFromEntity(this._dayEntity(day));
+      if (!recipe || ['unavailable', 'unknown'].includes(recipe.state)) continue;
       cards.push(this._renderMealCard(recipe, day, colors[day - 1] || '#F28C28'));
     }
+    const debug = this.config.debug ? this._renderDebug(maxDays, cards.length) : '';
     return `
       <ha-card>
+        ${debug}
         <div class="header-row">
           <div>
             <h2>${this._escape(this.config.title || '🍽️ Weekmenu')}</h2>
@@ -242,6 +258,15 @@ class DinnerGenieCard extends HTMLElement {
         <div class="grid week-grid">${cards.join('')}</div>
       </ha-card>
       ${this._renderDialog()}
+    `;
+  }
+
+  _renderDebug(maxDays, visibleCards) {
+    const daysState = this._state(this.config.days_entity);
+    return `
+      <div class="debug">
+        Card v${DINNER_GENIE_CARD_VERSION} | ${this.config.days_entity}: ${this._escape(daysState?.state || 'niet gevonden')} | dagen: ${maxDays} | kaarten: ${visibleCards}
+      </div>
     `;
   }
 
@@ -484,6 +509,7 @@ class DinnerGenieCard extends HTMLElement {
       .header-row { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:16px; }
       h2 { margin:0; font-size:28px; line-height:1.1; }
       .muted { margin:6px 0 0 0; opacity:.72; }
+      .debug { margin:-4px 0 12px 0; padding:8px 10px; border-radius:10px; background:rgba(242,140,40,.16); color:var(--primary-text-color); font-size:12px; line-height:1.4; }
       .header-action { border:0; border-radius:16px; background:#F28C28; color:white; padding:10px 14px; font-weight:700; cursor:pointer; }
       .grid { display:grid; gap:14px; align-items:stretch; }
       .grid > * { min-width:0; }
@@ -514,10 +540,14 @@ class DinnerGenieCard extends HTMLElement {
   }
 }
 
-customElements.define('dinner-genie-card', DinnerGenieCard);
+if (!customElements.get('dinner-genie-card')) {
+  customElements.define('dinner-genie-card', DinnerGenieCard);
+} else {
+  console.info(`Dinner Genie Card v${DINNER_GENIE_CARD_VERSION} loaded after element was already registered`);
+}
 window.customCards = window.customCards || [];
 window.customCards.push({
   type: 'dinner-genie-card',
-  name: 'Dinner Genie Card',
+  name: `Dinner Genie Card v${DINNER_GENIE_CARD_VERSION}`,
   description: 'Weekmenu en recepten voor Dinner Genie',
 });
