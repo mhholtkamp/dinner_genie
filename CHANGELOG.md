@@ -1,3 +1,8 @@
+## 2.4.3
+
+- Ruimt oude Dinner Genie card-picker registraties defensief op, ook als oudere gecachete card-scripts later nog laden.
+- Laat de Lovelace card-preview ook renderen zonder Home Assistant entity-data.
+
 ## 2.4.2
 
 - Plaatst Dinner Genie icon/logo ook op de repo-root en integratie-root zodat Home Assistant/HACS update-overzichten een afbeelding kunnen tonen.

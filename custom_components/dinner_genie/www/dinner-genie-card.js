@@ -1,5 +1,5 @@
 
-const DINNER_GENIE_CARD_VERSION = '2.4.2';
+const DINNER_GENIE_CARD_VERSION = '2.4.3';
 const DINNER_GENIE_CARD_TAG = 'dinner-genie-card';
 const DINNER_GENIE_CARD_V2_TAG = 'dinner-genie-card-v2';
 const DINNER_GENIE_CARD_VERSIONED_TAG = 'dinner-genie-card-v239';
@@ -35,6 +35,9 @@ class DinnerGenieCard extends HTMLElement {
     this._dialogScrollTop = this._dialogScrollTop ?? 0;
     this._dialogTouchY = this._dialogTouchY ?? null;
     this._rendered = this._rendered ?? false;
+    if (this.config.preview) {
+      requestAnimationFrame(() => this.render());
+    }
   }
 
   set hass(hass) {
@@ -402,7 +405,7 @@ class DinnerGenieCard extends HTMLElement {
   }
 
   render() {
-    if (!this.config || !this._hass) return;
+    if (!this.config || (!this._hass && !this.config.preview)) return;
     const root = this.shadowRoot || this;
     const activeElement = root.activeElement || (this.contains(document.activeElement) ? document.activeElement : null);
     const activeId = activeElement?.id || '';
@@ -609,20 +612,39 @@ if (!customElements.get(DINNER_GENIE_CARD_TAG)) {
 } else {
   console.info(`Dinner Genie Card v${DINNER_GENIE_CARD_VERSION} loaded after element was already registered`);
 }
+class DinnerGenieCardV2 extends DinnerGenieCard {
+  static getStubConfig() {
+    return DinnerGenieCard.getStubConfig();
+  }
+}
+
 if (!customElements.get(DINNER_GENIE_CARD_V2_TAG)) {
-  customElements.define(DINNER_GENIE_CARD_V2_TAG, class DinnerGenieCardV2 extends DinnerGenieCard {});
+  customElements.define(DINNER_GENIE_CARD_V2_TAG, DinnerGenieCardV2);
 }
 if (!customElements.get(DINNER_GENIE_CARD_VERSIONED_TAG)) {
   customElements.define(DINNER_GENIE_CARD_VERSIONED_TAG, class DinnerGenieCardV239 extends DinnerGenieCard {});
 }
-window.customCards = (window.customCards || []).filter((card) => ![
-  DINNER_GENIE_CARD_TAG,
-  DINNER_GENIE_CARD_V2_TAG,
-  DINNER_GENIE_CARD_VERSIONED_TAG,
-].includes(card.type));
-window.customCards.push({
-  type: DINNER_GENIE_CARD_V2_TAG,
-  name: 'Dinner Genie Card',
-  description: 'Nieuwe Dinner Genie card met geisoleerde frontend-state',
-  preview: true,
-});
+
+const isDinnerGeniePickerCard = (card) => {
+  const haystack = `${card?.type || ''} ${card?.name || ''} ${card?.description || ''}`.toLowerCase();
+  return haystack.includes('dinner-genie-card') ||
+    haystack.includes('dinner genie') ||
+    haystack.includes('dinner card');
+};
+
+const registerDinnerGeniePickerCard = () => {
+  window.customCards = (window.customCards || []).filter((card) => !isDinnerGeniePickerCard(card));
+  window.customCards.push({
+    type: DINNER_GENIE_CARD_V2_TAG,
+    name: 'Dinner Genie Card',
+    description: 'Weekmenu en receptenoverzicht voor Dinner Genie',
+    preview: true,
+    documentationURL: 'https://github.com/mhholtkamp/dinner_genie',
+  });
+};
+
+registerDinnerGeniePickerCard();
+window.__dinnerGenieRegisterCustomCard = registerDinnerGeniePickerCard;
+setTimeout(registerDinnerGeniePickerCard, 500);
+setTimeout(registerDinnerGeniePickerCard, 1500);
+setTimeout(registerDinnerGeniePickerCard, 3500);
