@@ -1,5 +1,5 @@
 
-const DINNER_GENIE_CARD_VERSION = '2.4.0';
+const DINNER_GENIE_CARD_VERSION = '2.4.1';
 const DINNER_GENIE_CARD_TAG = 'dinner-genie-card';
 const DINNER_GENIE_CARD_V2_TAG = 'dinner-genie-card-v2';
 const DINNER_GENIE_CARD_VERSIONED_TAG = 'dinner-genie-card-v239';
@@ -24,6 +24,7 @@ class DinnerGenieCard extends HTMLElement {
       days_entity: 'number.dinner_genie_aantal_dagen',
       recipes_entity: 'sensor.dinner_genie_recepten',
       debug: false,
+      preview: false,
       ...config,
     };
     this._selectedRecipe = this._selectedRecipe ?? null;
@@ -49,6 +50,16 @@ class DinnerGenieCard extends HTMLElement {
 
   getCardSize() {
     return this.config?.mode === 'recipes' ? 6 : 4;
+  }
+
+  static getStubConfig() {
+    return {
+      type: `custom:${DINNER_GENIE_CARD_V2_TAG}`,
+      mode: 'week',
+      title: '🍽️ Weekmenu',
+      max_days: 1,
+      preview: true,
+    };
   }
 
   _state(entityId) {
@@ -177,14 +188,31 @@ class DinnerGenieCard extends HTMLElement {
 
   _recipeFromEntity(entityId) {
     const state = this._state(entityId);
+    if (!state && this.config?.preview) return this._previewRecipe(entityId);
     if (!state) return null;
     return { state: state.state, entity_id: entityId, ...(state.attributes || {}) };
   }
 
   _allRecipes() {
+    if (this.config?.preview) return [this._previewRecipe('preview_recipe')];
     const state = this._state(this.config.recipes_entity);
     const recipes = state?.attributes?.recipes;
     return Array.isArray(recipes) ? recipes : [];
+  }
+
+  _previewRecipe(entityId) {
+    return {
+      entity_id: entityId,
+      state: 'spaghetti spinazie',
+      name: 'spaghetti spinazie',
+      prep_time: '15',
+      diet_type: 'vegan',
+      category: 'pasta, vegan',
+      description: 'Romige pasta met spinazie, tomaat en een frisse kruidige saus.',
+      display_image: '/api/dinner_genie/assets/placeholder_recipe.png',
+      ingredients_formatted: ['spaghetti', 'spinazie', 'tomaat', 'vegan roomsaus'],
+      instructions: 'Kook de pasta. Bak de groenten kort aan en meng alles met de saus.',
+    };
   }
 
   _escape(value) {
@@ -587,19 +615,14 @@ if (!customElements.get(DINNER_GENIE_CARD_V2_TAG)) {
 if (!customElements.get(DINNER_GENIE_CARD_VERSIONED_TAG)) {
   customElements.define(DINNER_GENIE_CARD_VERSIONED_TAG, class DinnerGenieCardV239 extends DinnerGenieCard {});
 }
-window.customCards = window.customCards || [];
-window.customCards.push({
-  type: DINNER_GENIE_CARD_TAG,
-  name: `Dinner Genie Card v${DINNER_GENIE_CARD_VERSION}`,
-  description: 'Weekmenu en recepten voor Dinner Genie',
-});
+window.customCards = (window.customCards || []).filter((card) => ![
+  DINNER_GENIE_CARD_TAG,
+  DINNER_GENIE_CARD_V2_TAG,
+  DINNER_GENIE_CARD_VERSIONED_TAG,
+].includes(card.type));
 window.customCards.push({
   type: DINNER_GENIE_CARD_V2_TAG,
-  name: `Dinner Genie Card v2`,
+  name: 'Dinner Genie Card',
   description: 'Nieuwe Dinner Genie card met geisoleerde frontend-state',
-});
-window.customCards.push({
-  type: DINNER_GENIE_CARD_VERSIONED_TAG,
-  name: `Dinner Genie Card v${DINNER_GENIE_CARD_VERSION} direct`,
-  description: 'Versie-specifieke Dinner Genie card voor cache-diagnose',
+  preview: true,
 });

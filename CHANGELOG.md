@@ -1,3 +1,8 @@
+## 2.4.1
+
+- Toont nog maar één Dinner Genie card in de Home Assistant kaartkiezer.
+- Voegt `getStubConfig()` en `preview: true` toe zodat Home Assistant een kaartpreview kan renderen.
+
 ## 2.4.0
 
 - Introduceert `custom:dinner-genie-card-v2` als permanente kaartnaam voor de nieuwe frontend-code.
