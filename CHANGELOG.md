@@ -1,3 +1,7 @@
+## 2.4.2
+
+- Plaatst Dinner Genie icon/logo ook op de repo-root en integratie-root zodat Home Assistant/HACS update-overzichten een afbeelding kunnen tonen.
+
 ## 2.4.1
 
 - Toont nog maar één Dinner Genie card in de Home Assistant kaartkiezer.

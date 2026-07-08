@@ -1,5 +1,5 @@
 
-const DINNER_GENIE_CARD_VERSION = '2.4.1';
+const DINNER_GENIE_CARD_VERSION = '2.4.2';
 const DINNER_GENIE_CARD_TAG = 'dinner-genie-card';
 const DINNER_GENIE_CARD_V2_TAG = 'dinner-genie-card-v2';
 const DINNER_GENIE_CARD_VERSIONED_TAG = 'dinner-genie-card-v239';
