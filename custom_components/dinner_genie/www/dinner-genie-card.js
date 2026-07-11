@@ -1,5 +1,5 @@
 
-const DINNER_GENIE_CARD_VERSION = '3.0.3';
+const DINNER_GENIE_CARD_VERSION = '3.0.4';
 const DINNER_GENIE_CARD_TAG = 'dinner-genie-card';
 const DINNER_GENIE_CARD_V2_TAG = 'dinner-genie-card-v2';
 const DINNER_GENIE_CARD_VERSIONED_TAG = 'dinner-genie-card-v239';
@@ -631,27 +631,41 @@ if (!customElements.get(DINNER_GENIE_CARD_V2_TAG)) {
 if (!customElements.get(DINNER_GENIE_CARD_VERSIONED_TAG)) {
   customElements.define(DINNER_GENIE_CARD_VERSIONED_TAG, class DinnerGenieCardV239 extends DinnerGenieCard {});
 }
-if (!customElements.get(SAVELIO_CARD_TAG)) {
-  customElements.define(SAVELIO_CARD_TAG, class SavelioCard extends DinnerGenieCard {});
+class SavelioCard extends DinnerGenieCard {
+  static getStubConfig() {
+    return {
+      type: `custom:${SAVELIO_CARD_TAG}`,
+      mode: 'week',
+      title: 'Savelio weekplanning',
+      max_days: 1,
+      preview: true,
+    };
+  }
 }
 
-const isDinnerGeniePickerCard = (card) => {
+if (!customElements.get(SAVELIO_CARD_TAG)) {
+  customElements.define(SAVELIO_CARD_TAG, SavelioCard);
+}
+
+const isLegacyDinnerGeniePickerCard = (card) => {
   const haystack = `${card?.type || ''} ${card?.name || ''} ${card?.description || ''}`.toLowerCase();
   return haystack.includes('dinner-genie-card') ||
     haystack.includes('dinner genie') ||
-    haystack.includes('dinner card') ||
-    haystack.includes('savelio');
+    haystack.includes('dinner card');
 };
 
 const registerDinnerGeniePickerCard = () => {
-  window.customCards = (window.customCards || []).filter((card) => !isDinnerGeniePickerCard(card));
-  window.customCards.push({
+  const savelioCard = {
     type: SAVELIO_CARD_TAG,
     name: 'Savelio Card',
     description: 'Weekplanning en receptenoverzicht voor Savelio',
     preview: true,
     documentationURL: 'https://github.com/mhholtkamp/dinner_genie',
-  });
+  };
+  const existingCards = Array.isArray(window.customCards) ? window.customCards : [];
+  const cards = existingCards.filter((card) => !isLegacyDinnerGeniePickerCard(card) && card?.type !== SAVELIO_CARD_TAG);
+  cards.push(savelioCard);
+  window.customCards = cards;
 };
 
 registerDinnerGeniePickerCard();

@@ -1,3 +1,8 @@
+## 3.0.4
+
+- Maakt de kaartkiezer-registratie robuuster zodat `Savelio Card` weer als enige custom card zichtbaar is.
+- Gebruikt een expliciete preview/stub-config op `custom:savelio-card`.
+
 ## 3.0.3
 
 - Verwijdert de `Vernieuwen` knop uit de kop van de weekmenu-card.
