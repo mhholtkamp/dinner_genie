@@ -8,7 +8,7 @@ button_card_templates:
       ]]]
     entity_picture: |
       [[[
-        return entity.attributes.display_image || entity.attributes.image_url || "/local/community/dinner_genie/placeholder_recipe.png";
+        return entity.attributes.display_image || entity.attributes.image_url || "/api/dinner_genie/assets/placeholder_recipe.png";
       ]]]
     label: |
       [[[
@@ -34,6 +34,17 @@ button_card_templates:
     custom_fields:
       day: |
         [[[
+          const label = entity.attributes.label || entity.attributes.planning_label;
+          if (label) return label;
+          const dateValue = entity.attributes.date || entity.attributes.planning_date;
+          const weekday = entity.attributes.weekday || entity.attributes.planning_weekday;
+          if (dateValue) {
+            const date = new Date(dateValue);
+            if (!Number.isNaN(date.getTime())) {
+              const dayMonth = date.toLocaleDateString("nl-NL", { day: "numeric", month: "long" });
+              return weekday ? `${weekday} ${dayMonth}` : date.toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long" });
+            }
+          }
           return variables.day;
         ]]]
       detail_button: Details bekijken

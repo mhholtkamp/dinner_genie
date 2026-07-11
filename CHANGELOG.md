@@ -1,3 +1,9 @@
+## 3.0.2
+
+- Verrijkt opgeslagen weekmenu-maaltijden met volledige receptdetails uit `/recipes`, zodat afbeeldingen, bereiding en ingrediënten beschikbaar blijven.
+- Toont daglabels als echte dag met datum, bijvoorbeeld `maandag 13 juli`.
+- Verwijdert de lokale vervang/verversknoppen per dag en vervangt de placeholder-afbeelding door Savelio branding.
+
 ## 3.0.1
 
 - Leest de actuele weekplanning uit `GET /api/groups/{groupId}/week-menus?limit=1` volgens de API-handleiding.

@@ -1,5 +1,5 @@
 
-const DINNER_GENIE_CARD_VERSION = '3.0.1';
+const DINNER_GENIE_CARD_VERSION = '3.0.2';
 const DINNER_GENIE_CARD_TAG = 'dinner-genie-card';
 const DINNER_GENIE_CARD_V2_TAG = 'dinner-genie-card-v2';
 const DINNER_GENIE_CARD_VERSIONED_TAG = 'dinner-genie-card-v239';
@@ -27,7 +27,6 @@ class DinnerGenieCard extends HTMLElement {
       recipes_entity: 'sensor.dinner_genie_recepten',
       debug: false,
       preview: false,
-      show_replace_buttons: false,
       ...config,
     };
     this._selectedRecipe = this._selectedRecipe ?? null;
@@ -74,10 +73,6 @@ class DinnerGenieCard extends HTMLElement {
 
   _dayEntity(day) {
     return this.config[`day_${day}_entity`] || `sensor.dinner_genie_dag_${day}`;
-  }
-
-  _replaceButton(day) {
-    return this.config[`replace_day_${day}_button`] || `button.dinner_genie_vervang_dag_${day}`;
   }
 
   _weekDayCount() {
@@ -285,14 +280,10 @@ class DinnerGenieCard extends HTMLElement {
     const category = this._escape(recipe?.category || '');
     const categoryHtml = category ? `🏷️ ${category}` : '&nbsp;';
     const dayLabel = this._escape(this._dayLabel(recipe, day));
-    const replaceButton = day && this.config.show_replace_buttons
-      ? `<button class="icon-button" data-action="replace" data-day="${day}" title="Vervang ${dayLabel}">↻</button>`
-      : '';
     return `
       <article class="dg-card" style="--accent:${color}">
         <div class="dg-card-header">
           <strong>${dayLabel}</strong>
-          ${replaceButton}
         </div>
         <img src="${this._escape(this._image(recipe))}" alt="" class="recipe-image" loading="lazy">
         <div class="dg-card-body">
@@ -312,16 +303,22 @@ class DinnerGenieCard extends HTMLElement {
 
     const weekday = recipe?.planning_weekday;
     const date = recipe?.planning_date;
-    if (weekday && date) return `${weekday} ${this._formatShortDate(date)}`;
+    if (weekday && date) return `${weekday} ${this._formatDayMonth(date)}`;
     if (weekday) return weekday;
-    if (date) return this._formatShortDate(date);
+    if (date) return this._formatFullDate(date);
     return `Dag ${day}`;
   }
 
-  _formatShortDate(value) {
+  _formatDayMonth(value) {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return String(value);
-    return new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'short' }).format(date);
+    return new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'long' }).format(date);
+  }
+
+  _formatFullDate(value) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return String(value);
+    return new Intl.DateTimeFormat('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' }).format(date);
   }
 
   _renderWeek() {
@@ -560,13 +557,6 @@ class DinnerGenieCard extends HTMLElement {
         event.preventDefault();
         event.stopPropagation();
         this._callButton(this.config.generate_button);
-      });
-    });
-    root.querySelectorAll('[data-action="replace"]').forEach((button) => {
-      button.addEventListener('click', (event) => {
-        event.stopPropagation();
-        const day = button.getAttribute('data-day');
-        this._callButton(this._replaceButton(day));
       });
     });
     this._bindDetailButtons();

@@ -5,7 +5,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN, MAX_DAYS
+from .const import DOMAIN
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
@@ -14,7 +14,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         DinnerGenieGenerateWeekMenuButton(coordinator),
         DinnerGenieRandomButton(coordinator),
     ]
-    entities.extend(DinnerGenieReplaceDayButton(coordinator, day_number) for day_number in range(1, MAX_DAYS + 1))
     async_add_entities(entities)
 
 
@@ -51,20 +50,3 @@ class DinnerGenieRandomButton(DinnerGenieBaseButton):
 
     async def async_press(self) -> None:
         await self.coordinator.async_choose_random_recipe()
-
-
-class DinnerGenieReplaceDayButton(DinnerGenieBaseButton):
-    _attr_icon = "mdi:refresh"
-
-    def __init__(self, coordinator, day_number: int) -> None:
-        super().__init__(coordinator)
-        self.day_number = day_number
-        self._attr_name = f"Vervang dag {day_number}"
-        self._attr_unique_id = f"{coordinator.entry.entry_id}_replace_day_{day_number}"
-
-    @property
-    def available(self) -> bool:
-        return False
-
-    async def async_press(self) -> None:
-        await self.coordinator.async_replace_day(self.day_number)

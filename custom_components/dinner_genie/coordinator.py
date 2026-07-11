@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import timedelta
+from datetime import date, timedelta
 from typing import Any
 from uuid import uuid4
 
@@ -50,6 +50,7 @@ class DinnerGenieCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         old = self.data or {}
         week_planning = self._latest_week_menu_payload(week_menus_response)
         day_entries = self._day_entries_from_week_planning(week_planning)
+        self._enrich_day_entries(day_entries, recipes)
         meals = [entry["recipe"] for entry in day_entries if isinstance(entry.get("recipe"), dict)]
         shopping_lines = self._shopping_lines_from_week_planning(week_planning)
         return {
@@ -77,9 +78,6 @@ class DinnerGenieCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         data = dict(self.data or {})
         data["random"] = random_recipe
         self.async_set_updated_data(data)
-
-    async def async_replace_day(self, day_number: int) -> None:
-        raise UpdateFailed("Weekplanning wordt nu beheerd in Savelio. Vernieuw de integratie om wijzigingen op te halen.")
 
     async def async_update_option(self, key: str, value: Any) -> None:
         options = dict(self.entry.options)
@@ -156,10 +154,53 @@ class DinnerGenieCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 "label": item.get("label") or item.get("title"),
                 "recipe": recipe,
             }
+            entry["weekday"] = entry.get("weekday") or self._weekday_from_date(entry.get("date"))
+            entry["label"] = entry.get("label") or self._date_label(entry.get("date"), entry.get("weekday"))
             self._copy_day_metadata_to_recipe(entry, recipe)
             entries.append(entry)
 
         return entries
+
+    def _enrich_day_entries(self, day_entries: list[dict[str, Any]], recipes_response: dict[str, Any]) -> None:
+        recipes_by_id = self._recipes_by_id(recipes_response)
+        for entry in day_entries:
+            recipe = entry.get("recipe")
+            if not isinstance(recipe, dict):
+                continue
+
+            recipe_id = self._recipe_id(recipe)
+            full_recipe = recipes_by_id.get(recipe_id)
+            if full_recipe:
+                entry["recipe"] = self._merged_recipe(full_recipe, recipe)
+
+            self._copy_day_metadata_to_recipe(entry, entry["recipe"])
+
+    def _recipes_by_id(self, recipes_response: dict[str, Any]) -> dict[str, dict[str, Any]]:
+        recipes = recipes_response.get("recipes") or []
+        result: dict[str, dict[str, Any]] = {}
+        if not isinstance(recipes, list):
+            return result
+
+        for recipe in recipes:
+            if not isinstance(recipe, dict):
+                continue
+            recipe_id = self._recipe_id(recipe)
+            if recipe_id:
+                result[recipe_id] = recipe
+        return result
+
+    @staticmethod
+    def _recipe_id(recipe: dict[str, Any]) -> str:
+        value = recipe.get("id") or recipe.get("recipe_id") or recipe.get("recipeId")
+        return str(value) if value not in (None, "") else ""
+
+    @staticmethod
+    def _merged_recipe(full_recipe: dict[str, Any], planned_recipe: dict[str, Any]) -> dict[str, Any]:
+        merged = dict(full_recipe)
+        for key, value in planned_recipe.items():
+            if value not in (None, "", [], {}):
+                merged[key] = value
+        return merged
 
     def _recipe_from_day_item(self, item: dict[str, Any]) -> dict[str, Any]:
         for key in ("recipe", "meal", "dinner", "dish"):
@@ -167,6 +208,45 @@ class DinnerGenieCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if isinstance(value, dict):
                 return dict(value)
         return dict(item)
+
+    @staticmethod
+    def _weekday_from_date(value: Any) -> str | None:
+        parsed = DinnerGenieCoordinator._parse_date(value)
+        if not parsed:
+            return None
+        weekdays = ["maandag", "dinsdag", "woensdag", "donderdag", "vrijdag", "zaterdag", "zondag"]
+        return weekdays[parsed.weekday()]
+
+    @staticmethod
+    def _date_label(value: Any, weekday: Any = None) -> str | None:
+        parsed = DinnerGenieCoordinator._parse_date(value)
+        if not parsed:
+            return str(weekday) if weekday else None
+        months = [
+            "januari",
+            "februari",
+            "maart",
+            "april",
+            "mei",
+            "juni",
+            "juli",
+            "augustus",
+            "september",
+            "oktober",
+            "november",
+            "december",
+        ]
+        day_name = str(weekday) if weekday else DinnerGenieCoordinator._weekday_from_date(value)
+        return f"{day_name} {parsed.day} {months[parsed.month - 1]}"
+
+    @staticmethod
+    def _parse_date(value: Any) -> date | None:
+        if not value:
+            return None
+        try:
+            return date.fromisoformat(str(value)[:10])
+        except ValueError:
+            return None
 
     @staticmethod
     def _copy_day_metadata_to_recipe(entry: dict[str, Any], recipe: dict[str, Any]) -> None:
