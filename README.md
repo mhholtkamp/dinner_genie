@@ -49,7 +49,7 @@ De weekplanning wordt in de Savelio webinterface gemaakt. Home Assistant haalt d
 De integratie roept dan aan:
 
 ```text
-/api/groups/{groupId}/week-planning
+/api/groups/{groupId}/week-menus?limit=1
 ```
 
 met de waarden uit Home Assistant.
@@ -127,7 +127,7 @@ Type: JavaScript module.
 Als Home Assistant een oude versie blijft laden, voeg tijdelijk een versie-query toe, bijvoorbeeld:
 
 ```text
-/api/dinner_genie/www/dinner-genie-card.js?v=3.0.0
+/api/dinner_genie/www/dinner-genie-card.js?v=3.0.1
 ```
 
 Gebruik voor nieuwe dashboards de v2-kaart. Die omzeilt oude frontend-registraties van eerdere card-versies:

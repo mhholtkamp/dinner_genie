@@ -56,15 +56,8 @@ class DinnerGenieClient:
     async def random(self, **filters: Any) -> dict[str, Any]:
         return await self._get("random", filters)
 
-    async def week_planning(self) -> dict[str, Any]:
-        last_error: DinnerGenieApiError | None = None
-        for endpoint in ("week-planning", "week-planning/current", "weekplanning", "week-plan/current"):
-            try:
-                return await self._get(endpoint)
-            except DinnerGenieApiError as err:
-                last_error = err
-
-        raise last_error or DinnerGenieApiError("Kan weekplanning niet ophalen")
+    async def week_menus(self, limit: int = 1) -> dict[str, Any]:
+        return await self._get("week-menus", {"limit": limit})
 
     async def validate(self) -> None:
         await self.recipes(limit=1)

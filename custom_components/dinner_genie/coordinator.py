@@ -43,12 +43,12 @@ class DinnerGenieCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def _async_update_data(self) -> dict[str, Any]:
         try:
             recipes = await self.client.recipes(limit=500)
-            week_planning_response = await self.client.week_planning()
+            week_menus_response = await self.client.week_menus(limit=1)
         except DinnerGenieApiError as err:
             raise UpdateFailed(str(err)) from err
 
         old = self.data or {}
-        week_planning = self._week_planning_payload(week_planning_response)
+        week_planning = self._latest_week_menu_payload(week_menus_response)
         day_entries = self._day_entries_from_week_planning(week_planning)
         meals = [entry["recipe"] for entry in day_entries if isinstance(entry.get("recipe"), dict)]
         shopping_lines = self._shopping_lines_from_week_planning(week_planning)
@@ -112,8 +112,13 @@ class DinnerGenieCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         return items
 
     @staticmethod
-    def _week_planning_payload(response: dict[str, Any]) -> dict[str, Any]:
-        for key in ("weekPlanning", "week_planning", "planning", "weekPlan", "week_plan"):
+    def _latest_week_menu_payload(response: dict[str, Any]) -> dict[str, Any]:
+        week_menus = response.get("weekMenus") or response.get("week_menus") or response.get("menus")
+        if isinstance(week_menus, list) and week_menus:
+            latest = week_menus[0]
+            return latest if isinstance(latest, dict) else {}
+
+        for key in ("weekMenu", "week_menu", "weekPlanning", "week_planning", "planning", "weekPlan", "week_plan"):
             value = response.get(key)
             if isinstance(value, dict):
                 return value
@@ -145,7 +150,7 @@ class DinnerGenieCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 continue
 
             entry = {
-                "day": item.get("day") or item.get("dayNumber") or item.get("day_number") or index,
+                "day": item.get("day") or item.get("dayNumber") or item.get("day_number") or item.get("dayIndex") or item.get("day_index") or index,
                 "date": item.get("date") or item.get("plannedDate") or item.get("planned_date"),
                 "weekday": item.get("weekday") or item.get("dayName") or item.get("day_name"),
                 "label": item.get("label") or item.get("title"),

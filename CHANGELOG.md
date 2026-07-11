@@ -1,3 +1,8 @@
+## 3.0.1
+
+- Leest de actuele weekplanning uit `GET /api/groups/{groupId}/week-menus?limit=1` volgens de API-handleiding.
+- Ondersteunt `weekMenus[0]`, `shopping_lines`, `plannedDate` en `dayIndex` uit de opgeslagen weekmenu-response.
+
 ## 3.0.0
 
 - Hernoemt de zichtbare integratie en Lovelace card naar Savelio.
