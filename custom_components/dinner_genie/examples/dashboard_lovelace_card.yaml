@@ -13,6 +13,10 @@ views:
             title: Savelio weekplanning
             days_entity: number.dinner_genie_aantal_dagen
             max_days: 7
+          - type: custom:savelio-card
+            mode: today
+            title: Vandaag
+            days_entity: number.dinner_genie_aantal_dagen
 
   - type: sections
     title: Recepten

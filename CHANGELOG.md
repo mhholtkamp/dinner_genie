@@ -1,3 +1,10 @@
+## 3.0.5
+
+- Geeft `days_entity` voorrang bij het aantal zichtbare weekmenu-kaarten.
+- Voegt `mode: today` toe voor een kaart met alleen het gerecht van vandaag.
+- Laat `title: ""` en `title: false` de kaarttitel echt verbergen.
+- Registreert de Savelio card in-place in de Home Assistant kaartkiezer, zodat de preview beter zichtbaar blijft.
+
 ## 3.0.4
 
 - Maakt de kaartkiezer-registratie robuuster zodat `Savelio Card` weer als enige custom card zichtbaar is.

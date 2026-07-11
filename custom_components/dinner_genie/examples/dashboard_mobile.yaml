@@ -139,7 +139,7 @@ views:
 
               Wat eten we deze week?
 
-              Beheer je weekplanning in Savelio en vernieuw hier de actuele planning.
+              Beheer je weekplanning in Savelio.
             card_mod:
               style: |
                 ha-card {

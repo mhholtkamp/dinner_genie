@@ -1,5 +1,5 @@
 
-const DINNER_GENIE_CARD_VERSION = '3.0.4';
+const DINNER_GENIE_CARD_VERSION = '3.0.5';
 const DINNER_GENIE_CARD_TAG = 'dinner-genie-card';
 const DINNER_GENIE_CARD_V2_TAG = 'dinner-genie-card-v2';
 const DINNER_GENIE_CARD_VERSIONED_TAG = 'dinner-genie-card-v239';
@@ -17,9 +17,9 @@ class DinnerGenieCard extends HTMLElement {
   }
 
   setConfig(config) {
+    this._configKeys = new Set(Object.keys(config || {}));
     this.config = {
       mode: 'week',
-      title: 'Savelio weekplanning',
       max_days: 7,
       dashboard_path: '/dinner-genie',
       generate_button: 'button.dinner_genie_genereer_weekmenu',
@@ -80,7 +80,7 @@ class DinnerGenieCard extends HTMLElement {
     const state = this._state(this.config.days_entity);
     const entityDays = Number(state?.state);
     const inferredDays = this._inferredAvailableDayCount(configuredMax);
-    const days = inferredDays || (Number.isFinite(entityDays) && entityDays > 0 ? entityDays : configuredMax);
+    const days = Number.isFinite(entityDays) && entityDays > 0 ? entityDays : (inferredDays || configuredMax);
     return Math.min(7, Math.max(1, Math.trunc(days)));
   }
 
@@ -185,6 +185,26 @@ class DinnerGenieCard extends HTMLElement {
       days_state: daysState?.state || '',
       days,
     });
+  }
+
+  _cardTitle(fallback) {
+    if (this._configKeys?.has('title')) return this.config.title;
+    return fallback;
+  }
+
+  _renderHeader(fallbackTitle, subtitle = '', subtitleRole = '') {
+    const title = this._cardTitle(fallbackTitle);
+    if (title === false || title === null || title === '') return '';
+    const roleAttribute = subtitleRole ? ` data-role="${this._escape(subtitleRole)}"` : '';
+    const subtitleHtml = subtitle ? `<p class="muted"${roleAttribute}>${this._escape(subtitle)}</p>` : '';
+    return `
+        <div class="header-row">
+          <div>
+            <h2>${this._escape(title)}</h2>
+            ${subtitleHtml}
+          </div>
+        </div>
+    `;
   }
 
   _recipeFromEntity(entityId) {
@@ -321,26 +341,55 @@ class DinnerGenieCard extends HTMLElement {
     return new Intl.DateTimeFormat('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' }).format(date);
   }
 
-  _renderWeek() {
-    const colors = ['#F28C28', '#5BAE5B', '#4A90E2', '#8E6CCF', '#D96C6C', '#46B8B8', '#D9B44A'];
+  _localIsoDate(date = new Date()) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  _weekRecipes() {
     const maxDays = this._weekDayCount();
-    const cards = [];
+    const recipes = [];
     for (let day = 1; day <= maxDays; day += 1) {
       const recipe = this._recipeFromEntity(this._dayEntity(day));
       if (!recipe || ['unavailable', 'unknown'].includes(recipe.state)) continue;
-      cards.push(this._renderMealCard(recipe, day, colors[day - 1] || '#F28C28'));
+      recipes.push({ day, recipe });
     }
+    return recipes;
+  }
+
+  _todayRecipe() {
+    const today = this._localIsoDate();
+    const recipes = this._weekRecipes();
+    return recipes.find(({ recipe }) => {
+      const date = recipe?.planning_date || recipe?.date;
+      return String(date || '').slice(0, 10) === today;
+    }) || recipes[0] || null;
+  }
+
+  _renderWeek() {
+    const colors = ['#F28C28', '#5BAE5B', '#4A90E2', '#8E6CCF', '#D96C6C', '#46B8B8', '#D9B44A'];
+    const maxDays = this._weekDayCount();
+    const cards = this._weekRecipes().map(({ day, recipe }) => this._renderMealCard(recipe, day, colors[day - 1] || '#F28C28'));
     const debug = this.config.debug ? this._renderDebug(maxDays, cards.length) : '';
     return `
       <ha-card>
         ${debug}
-        <div class="header-row">
-          <div>
-            <h2>${this._escape(this.config.title || 'Savelio weekplanning')}</h2>
-            <p class="muted">Klik op details om het recept te bekijken.</p>
-          </div>
-        </div>
+        ${this._renderHeader('Savelio weekplanning', 'Klik op details om het recept te bekijken.')}
         <div class="grid week-grid">${cards.join('')}</div>
+      </ha-card>
+      ${this._renderDialog()}
+    `;
+  }
+
+  _renderToday() {
+    const current = this._todayRecipe();
+    const card = current ? this._renderMealCard(current.recipe, current.day, '#F28C28') : '<p class="empty">Geen gerecht voor vandaag gevonden.</p>';
+    return `
+      <ha-card>
+        ${this._renderHeader('Vandaag', 'Het gerecht uit je weekmenu voor vandaag.')}
+        <div class="grid today-grid">${card}</div>
       </ha-card>
       ${this._renderDialog()}
     `;
@@ -380,12 +429,7 @@ class DinnerGenieCard extends HTMLElement {
     const categories = this._categories();
     return `
       <ha-card>
-        <div class="header-row">
-          <div>
-            <h2>${this._escape(this.config.title || '📖 Recepten')}</h2>
-            <p class="muted" data-role="recipe-count">${recipes.length} van ${this._allRecipes().length} recepten</p>
-          </div>
-        </div>
+        ${this._renderHeader('Recepten', `${recipes.length} van ${this._allRecipes().length} recepten`, 'recipe-count')}
         <div class="filters">
           <input id="search" type="search" placeholder="Zoeken..." value="${this._escape(this._search)}">
           <select id="diet">
@@ -437,7 +481,7 @@ class DinnerGenieCard extends HTMLElement {
     const mode = this.config.mode || 'week';
     root.innerHTML = `
       <style>${this._styles()}</style>
-      ${mode === 'recipes' ? this._renderRecipes() : this._renderWeek()}
+      ${mode === 'recipes' ? this._renderRecipes() : (mode === 'today' ? this._renderToday() : this._renderWeek())}
     `;
     this._bindEvents();
     this._restoreRenderState(activeId, selectionStart, selectionEnd, dialogScrollTop);
@@ -588,6 +632,7 @@ class DinnerGenieCard extends HTMLElement {
       .grid { display:grid; gap:14px; align-items:stretch; }
       .grid > * { min-width:0; }
       .week-grid { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+      .today-grid { grid-template-columns: minmax(230px, 420px); }
       .recipes-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
       .dg-card { --accent:#F28C28; background:#1f1f1f; border-radius:22px; overflow:hidden; border-top:5px solid var(--accent); box-shadow:0 8px 24px rgba(0,0,0,.28); height:100%; display:flex; flex-direction:column; }
       .dg-card-header { display:flex; justify-content:space-between; align-items:center; padding:12px 14px; color:white; font-size:18px; }
@@ -662,10 +707,11 @@ const registerDinnerGeniePickerCard = () => {
     preview: true,
     documentationURL: 'https://github.com/mhholtkamp/dinner_genie',
   };
-  const existingCards = Array.isArray(window.customCards) ? window.customCards : [];
+  if (!Array.isArray(window.customCards)) window.customCards = [];
+  const existingCards = window.customCards;
   const cards = existingCards.filter((card) => !isLegacyDinnerGeniePickerCard(card) && card?.type !== SAVELIO_CARD_TAG);
   cards.push(savelioCard);
-  window.customCards = cards;
+  existingCards.splice(0, existingCards.length, ...cards);
 };
 
 registerDinnerGeniePickerCard();

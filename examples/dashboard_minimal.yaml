@@ -6,7 +6,6 @@ views:
       - type: entities
         title: Savelio
         entities:
-          - button.dinner_genie_genereer_weekmenu
           - button.dinner_genie_kies_willekeurig_gerecht
 
       - type: entities

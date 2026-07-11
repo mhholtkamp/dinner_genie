@@ -26,7 +26,7 @@ De integratie maakt automatisch deze entiteiten aan:
 
 - `number.dinner_genie_aantal_dagen` maximaal 7
 - `number.dinner_genie_aantal_personen`
-- `button.dinner_genie_genereer_weekmenu` vernieuwt de actuele Savelio weekplanning in Home Assistant
+- `button.dinner_genie_genereer_weekmenu` haalt de actuele Savelio weekplanning opnieuw op
 - `button.dinner_genie_kies_willekeurig_gerecht`
 - `sensor.dinner_genie_aantal_recepten`
 - `sensor.dinner_genie_willekeurig_gerecht`
@@ -44,7 +44,7 @@ De integratie maakt automatisch deze entiteiten aan:
 
 ## Gebruik
 
-De weekplanning wordt in de Savelio webinterface gemaakt. Home Assistant haalt de actuele planning op via de API. Gebruik **Vernieuw weekplanning** om de laatste planning direct op te halen.
+De weekplanning wordt in de Savelio webinterface gemaakt. Home Assistant haalt de actuele planning op via de API.
 
 De integratie roept dan aan:
 
@@ -127,7 +127,7 @@ Type: JavaScript module.
 Als Home Assistant een oude versie blijft laden, voeg tijdelijk een versie-query toe, bijvoorbeeld:
 
 ```text
-/api/dinner_genie/www/dinner-genie-card.js?v=3.0.4
+/api/dinner_genie/www/dinner-genie-card.js?v=3.0.5
 ```
 
 Gebruik voor nieuwe dashboards de v2-kaart. Die omzeilt oude frontend-registraties van eerdere card-versies:
@@ -150,6 +150,24 @@ title: Savelio weekplanning
 days_entity: number.dinner_genie_aantal_dagen
 # Tijdelijk aanzetten bij frontend-cache of entity-problemen:
 # debug: true
+```
+
+Voorbeeld zonder kaarttitel:
+
+```yaml
+type: custom:savelio-card
+mode: week
+title: ""
+days_entity: number.dinner_genie_aantal_dagen
+```
+
+Voorbeeld gerecht van vandaag:
+
+```yaml
+type: custom:savelio-card
+mode: today
+title: Vandaag
+days_entity: number.dinner_genie_aantal_dagen
 ```
 
 Voorbeeld receptenoverzicht:
