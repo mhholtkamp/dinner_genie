@@ -2,8 +2,8 @@
   "config": {
     "step": {
       "user": {
-        "title": "Dinner Genie",
-        "description": "Enter the Dinner Genie API details. The base URL is usually {base_url}",
+        "title": "Savelio",
+        "description": "Enter the Savelio API details. The base URL is usually {base_url}",
         "data": {
           "base_url": "API base URL",
           "group_id": "Group ID",
@@ -12,11 +12,11 @@
       }
     },
     "error": {
-      "cannot_connect": "Could not connect to Dinner Genie. Check the API details.",
+      "cannot_connect": "Could not connect to Savelio. Check the API details.",
       "unknown": "Unexpected error"
     },
     "abort": {
-      "already_configured": "Dinner Genie is already configured"
+      "already_configured": "Savelio is already configured"
     }
   }
 }

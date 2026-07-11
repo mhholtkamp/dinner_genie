@@ -14,7 +14,7 @@ from .coordinator import DinnerGenieCoordinator
 
 
 async def _async_register_static_assets(hass: HomeAssistant) -> None:
-    """Register Dinner Genie static assets and Lovelace resources."""
+    """Register Savelio static assets and Lovelace resources."""
     registered_key = f"{DOMAIN}_static_assets_registered"
     if hass.data.get(registered_key):
         return

@@ -1,8 +1,9 @@
 
-const DINNER_GENIE_CARD_VERSION = '2.4.3';
+const DINNER_GENIE_CARD_VERSION = '3.0.0';
 const DINNER_GENIE_CARD_TAG = 'dinner-genie-card';
 const DINNER_GENIE_CARD_V2_TAG = 'dinner-genie-card-v2';
 const DINNER_GENIE_CARD_VERSIONED_TAG = 'dinner-genie-card-v239';
+const SAVELIO_CARD_TAG = 'savelio-card';
 
 class DinnerGenieCard extends HTMLElement {
   constructor() {
@@ -18,6 +19,7 @@ class DinnerGenieCard extends HTMLElement {
   setConfig(config) {
     this.config = {
       mode: 'week',
+      title: 'Savelio weekplanning',
       max_days: 7,
       dashboard_path: '/dinner-genie',
       generate_button: 'button.dinner_genie_genereer_weekmenu',
@@ -25,6 +27,7 @@ class DinnerGenieCard extends HTMLElement {
       recipes_entity: 'sensor.dinner_genie_recepten',
       debug: false,
       preview: false,
+      show_replace_buttons: false,
       ...config,
     };
     this._selectedRecipe = this._selectedRecipe ?? null;
@@ -57,9 +60,9 @@ class DinnerGenieCard extends HTMLElement {
 
   static getStubConfig() {
     return {
-      type: `custom:${DINNER_GENIE_CARD_V2_TAG}`,
+      type: `custom:${SAVELIO_CARD_TAG}`,
       mode: 'week',
-      title: '🍽️ Weekmenu',
+      title: 'Savelio weekplanning',
       max_days: 1,
       preview: true,
     };
@@ -82,7 +85,7 @@ class DinnerGenieCard extends HTMLElement {
     const state = this._state(this.config.days_entity);
     const entityDays = Number(state?.state);
     const inferredDays = this._inferredAvailableDayCount(configuredMax);
-    const days = Number.isFinite(entityDays) && entityDays > 0 ? entityDays : inferredDays;
+    const days = inferredDays || (Number.isFinite(entityDays) && entityDays > 0 ? entityDays : configuredMax);
     return Math.min(7, Math.max(1, Math.trunc(days)));
   }
 
@@ -281,11 +284,15 @@ class DinnerGenieCard extends HTMLElement {
     const diet = this._escape(recipe?.diet_type || 'geen dieet');
     const category = this._escape(recipe?.category || '');
     const categoryHtml = category ? `🏷️ ${category}` : '&nbsp;';
+    const dayLabel = this._escape(this._dayLabel(recipe, day));
+    const replaceButton = day && this.config.show_replace_buttons
+      ? `<button class="icon-button" data-action="replace" data-day="${day}" title="Vervang ${dayLabel}">↻</button>`
+      : '';
     return `
       <article class="dg-card" style="--accent:${color}">
         <div class="dg-card-header">
-          <strong>${day ? `Dag ${day}` : 'Recept'}</strong>
-          ${day ? `<button class="icon-button" data-action="replace" data-day="${day}" title="Vervang dag ${day}">↻</button>` : ''}
+          <strong>${dayLabel}</strong>
+          ${replaceButton}
         </div>
         <img src="${this._escape(this._image(recipe))}" alt="" class="recipe-image" loading="lazy">
         <div class="dg-card-body">
@@ -296,6 +303,25 @@ class DinnerGenieCard extends HTMLElement {
         </div>
       </article>
     `;
+  }
+
+  _dayLabel(recipe, day) {
+    if (!day) return 'Recept';
+    const label = recipe?.planning_label;
+    if (label) return label;
+
+    const weekday = recipe?.planning_weekday;
+    const date = recipe?.planning_date;
+    if (weekday && date) return `${weekday} ${this._formatShortDate(date)}`;
+    if (weekday) return weekday;
+    if (date) return this._formatShortDate(date);
+    return `Dag ${day}`;
+  }
+
+  _formatShortDate(value) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return String(value);
+    return new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'short' }).format(date);
   }
 
   _renderWeek() {
@@ -313,8 +339,8 @@ class DinnerGenieCard extends HTMLElement {
         ${debug}
         <div class="header-row">
           <div>
-            <h2>${this._escape(this.config.title || '🍽️ Weekmenu')}</h2>
-            <p class="muted">Klik op details om het recept te bekijken of vervang één dag met ↻.</p>
+            <h2>${this._escape(this.config.title || 'Savelio weekplanning')}</h2>
+            <p class="muted">Klik op details om het recept te bekijken.</p>
           </div>
           <button class="header-action" data-action="generate">↻ Vernieuwen</button>
         </div>
@@ -624,20 +650,24 @@ if (!customElements.get(DINNER_GENIE_CARD_V2_TAG)) {
 if (!customElements.get(DINNER_GENIE_CARD_VERSIONED_TAG)) {
   customElements.define(DINNER_GENIE_CARD_VERSIONED_TAG, class DinnerGenieCardV239 extends DinnerGenieCard {});
 }
+if (!customElements.get(SAVELIO_CARD_TAG)) {
+  customElements.define(SAVELIO_CARD_TAG, class SavelioCard extends DinnerGenieCard {});
+}
 
 const isDinnerGeniePickerCard = (card) => {
   const haystack = `${card?.type || ''} ${card?.name || ''} ${card?.description || ''}`.toLowerCase();
   return haystack.includes('dinner-genie-card') ||
     haystack.includes('dinner genie') ||
-    haystack.includes('dinner card');
+    haystack.includes('dinner card') ||
+    haystack.includes('savelio');
 };
 
 const registerDinnerGeniePickerCard = () => {
   window.customCards = (window.customCards || []).filter((card) => !isDinnerGeniePickerCard(card));
   window.customCards.push({
-    type: DINNER_GENIE_CARD_V2_TAG,
-    name: 'Dinner Genie Card',
-    description: 'Weekmenu en receptenoverzicht voor Dinner Genie',
+    type: SAVELIO_CARD_TAG,
+    name: 'Savelio Card',
+    description: 'Weekplanning en receptenoverzicht voor Savelio',
     preview: true,
     documentationURL: 'https://github.com/mhholtkamp/dinner_genie',
   });

@@ -1,3 +1,10 @@
+## 3.0.0
+
+- Hernoemt de zichtbare integratie en Lovelace card naar Savelio.
+- Haalt de actuele weekplanning op via de Savelio API in plaats van deze lokaal in Home Assistant te genereren of te muteren.
+- Gebruikt datum- en dagmetadata uit de API voor de dagsensoren en weekplanningkaart.
+- Introduceert `custom:savelio-card` als nieuwe kaartnaam, met backwards compatibility voor bestaande Dinner Genie card types.
+
 ## 2.4.3
 
 - Ruimt oude Dinner Genie card-picker registraties defensief op, ook als oudere gecachete card-scripts later nog laden.

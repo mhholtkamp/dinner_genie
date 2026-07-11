@@ -1,6 +1,6 @@
 views:
   - type: sections
-    title: Dinner Genie
+    title: Savelio
     path: dinner-genie
     icon: mdi:silverware-fork-knife
     max_columns: 3
@@ -8,9 +8,9 @@ views:
       - type: grid
         column_span: 3
         cards:
-          - type: custom:dinner-genie-card-v2
+          - type: custom:savelio-card
             mode: week
-            title: 🍽️ Weekmenu
+            title: Savelio weekplanning
             days_entity: number.dinner_genie_aantal_dagen
             max_days: 7
             generate_button: button.dinner_genie_genereer_weekmenu
@@ -24,7 +24,7 @@ views:
       - type: grid
         column_span: 3
         cards:
-          - type: custom:dinner-genie-card-v2
+          - type: custom:savelio-card
             mode: recipes
             title: 📖 Recepten
             recipes_entity: sensor.dinner_genie_recepten

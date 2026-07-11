@@ -2,8 +2,8 @@
   "config": {
     "step": {
       "user": {
-        "title": "Dinner Genie instellen",
-        "description": "Vul je Dinner Genie API gegevens in.",
+        "title": "Savelio instellen",
+        "description": "Vul je Savelio API gegevens in.",
         "data": {
           "base_url": "API basis-URL",
           "group_id": "Groeps-ID",
@@ -15,7 +15,7 @@
       "cannot_connect": "Kan geen verbinding maken of API key/groeps-ID klopt niet."
     },
     "abort": {
-      "already_configured": "Deze Dinner Genie groep is al geconfigureerd."
+      "already_configured": "Deze Savelio groep is al geconfigureerd."
     }
   }
 }

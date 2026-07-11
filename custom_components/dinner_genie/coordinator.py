@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import random
 from datetime import timedelta
 from typing import Any
 from uuid import uuid4
@@ -25,6 +24,9 @@ class DinnerGenieCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     @property
     def days(self) -> int:
+        day_entries = (self.data or {}).get("day_entries") or []
+        if day_entries:
+            return len(day_entries)
         return int(self.entry.options.get(OPT_DAYS, 5))
 
     @property
@@ -41,33 +43,30 @@ class DinnerGenieCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def _async_update_data(self) -> dict[str, Any]:
         try:
             recipes = await self.client.recipes(limit=500)
+            week_planning_response = await self.client.week_planning()
         except DinnerGenieApiError as err:
             raise UpdateFailed(str(err)) from err
 
         old = self.data or {}
+        week_planning = self._week_planning_payload(week_planning_response)
+        day_entries = self._day_entries_from_week_planning(week_planning)
+        meals = [entry["recipe"] for entry in day_entries if isinstance(entry.get("recipe"), dict)]
+        shopping_lines = self._shopping_lines_from_week_planning(week_planning)
         return {
             "recipes": recipes,
             "random": old.get("random"),
-            "week_plan": old.get("week_plan"),
-            "meals": old.get("meals", []),
-            "shopping_lines": old.get("shopping_lines", []),
-            "shopping_items": old.get("shopping_items", []),
+            "week_plan": week_planning,
+            "day_entries": day_entries,
+            "meals": meals,
+            "shopping_lines": shopping_lines,
+            "shopping_items": self._todo_items_from_lines(
+                shopping_lines,
+                previous_items=old.get("shopping_items") or [],
+            ),
         }
 
     async def async_generate_week_plan(self) -> None:
-        try:
-            week_plan = await self.client.week_plan(self.days, self.servings, **self.filters)
-        except DinnerGenieApiError as err:
-            raise UpdateFailed(str(err)) from err
-
-        data = dict(self.data or {})
-        data["week_plan"] = week_plan
-        shopping_lines = week_plan.get("shoppingLines", []) or []
-
-        data["meals"] = week_plan.get("meals", []) or []
-        data["shopping_lines"] = shopping_lines
-        data["shopping_items"] = self._todo_items_from_lines(shopping_lines)
-        self.async_set_updated_data(data)
+        await self.async_request_refresh()
 
     async def async_choose_random_recipe(self) -> None:
         try:
@@ -80,66 +79,7 @@ class DinnerGenieCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.async_set_updated_data(data)
 
     async def async_replace_day(self, day_number: int) -> None:
-        """Replace one meal in the current week menu and rebuild the shopping list."""
-        data = dict(self.data or {})
-        meals = list(data.get("meals") or [])
-        index = day_number - 1
-
-        if index < 0 or index >= len(meals):
-            raise UpdateFailed(f"Dag {day_number} heeft nog geen gerecht om te vervangen")
-
-        try:
-            response = await self.client.recipes(limit=500, **self.filters)
-        except DinnerGenieApiError as err:
-            raise UpdateFailed(str(err)) from err
-
-        recipes = [recipe for recipe in response.get("recipes", []) if isinstance(recipe, dict)]
-        if not recipes:
-            raise UpdateFailed("Geen recepten gevonden om mee te vervangen")
-
-        current_ids = {str(meal.get("id")) for meal in meals if isinstance(meal, dict) and meal.get("id")}
-        other_ids = {
-            str(meal.get("id"))
-            for pos, meal in enumerate(meals)
-            if pos != index and isinstance(meal, dict) and meal.get("id")
-        }
-
-        candidates = [
-            recipe
-            for recipe in recipes
-            if recipe.get("id") and str(recipe.get("id")) not in current_ids
-        ]
-
-        # If the recipe pool is too small, at least prevent duplicates with the other days.
-        if not candidates:
-            candidates = [
-                recipe
-                for recipe in recipes
-                if recipe.get("id") and str(recipe.get("id")) not in other_ids
-            ]
-
-        if not candidates:
-            raise UpdateFailed("Geen alternatief gerecht gevonden dat niet al in het weekmenu staat")
-
-        new_recipe = random.choice(candidates)
-        meals[index] = new_recipe
-
-        shopping_lines = self._build_shopping_lines(meals)
-        data["meals"] = meals
-        data["shopping_lines"] = shopping_lines
-        data["shopping_items"] = self._todo_items_from_lines(
-            shopping_lines,
-            previous_items=data.get("shopping_items") or [],
-        )
-
-        week_plan = dict(data.get("week_plan") or {})
-        week_plan["meals"] = meals
-        week_plan["shoppingLines"] = shopping_lines
-        week_plan["days"] = len(meals)
-        week_plan["servings"] = self.servings
-        data["week_plan"] = week_plan
-
-        self.async_set_updated_data(data)
+        raise UpdateFailed("Weekplanning wordt nu beheerd in Savelio. Vernieuw de integratie om wijzigingen op te halen.")
 
     async def async_update_option(self, key: str, value: Any) -> None:
         options = dict(self.entry.options)
@@ -171,12 +111,105 @@ class DinnerGenieCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             )
         return items
 
+    @staticmethod
+    def _week_planning_payload(response: dict[str, Any]) -> dict[str, Any]:
+        for key in ("weekPlanning", "week_planning", "planning", "weekPlan", "week_plan"):
+            value = response.get(key)
+            if isinstance(value, dict):
+                return value
+        return response
+
+    def _day_entries_from_week_planning(self, week_planning: dict[str, Any]) -> list[dict[str, Any]]:
+        raw_days = self._first_list(
+            week_planning,
+            "days",
+            "dayPlans",
+            "day_plans",
+            "planning",
+            "items",
+            "meals",
+        )
+        entries: list[dict[str, Any]] = []
+
+        for index, item in enumerate(raw_days, start=1):
+            if not isinstance(item, dict):
+                if isinstance(item, str):
+                    continue
+                recipe = item if isinstance(item, dict) else {}
+                entry = {"day": index, "recipe": recipe}
+                entries.append(entry)
+                continue
+
+            recipe = self._recipe_from_day_item(item)
+            if not isinstance(recipe, dict) or not recipe:
+                continue
+
+            entry = {
+                "day": item.get("day") or item.get("dayNumber") or item.get("day_number") or index,
+                "date": item.get("date") or item.get("plannedDate") or item.get("planned_date"),
+                "weekday": item.get("weekday") or item.get("dayName") or item.get("day_name"),
+                "label": item.get("label") or item.get("title"),
+                "recipe": recipe,
+            }
+            self._copy_day_metadata_to_recipe(entry, recipe)
+            entries.append(entry)
+
+        return entries
+
+    def _recipe_from_day_item(self, item: dict[str, Any]) -> dict[str, Any]:
+        for key in ("recipe", "meal", "dinner", "dish"):
+            value = item.get(key)
+            if isinstance(value, dict):
+                return dict(value)
+        return dict(item)
+
+    @staticmethod
+    def _copy_day_metadata_to_recipe(entry: dict[str, Any], recipe: dict[str, Any]) -> None:
+        for source, target in (
+            ("day", "planning_day"),
+            ("date", "planning_date"),
+            ("weekday", "planning_weekday"),
+            ("label", "planning_label"),
+        ):
+            if entry.get(source) not in (None, ""):
+                recipe[target] = entry[source]
+
+    def _shopping_lines_from_week_planning(self, week_planning: dict[str, Any]) -> list[str]:
+        raw_lines = self._first_list(
+            week_planning,
+            "shoppingLines",
+            "shopping_lines",
+            "shoppingList",
+            "shopping_list",
+            "groceryLines",
+            "grocery_lines",
+            "groceries",
+        )
+
+        lines: list[str] = []
+        for item in raw_lines:
+            if isinstance(item, str) and item.strip():
+                lines.append(item.strip())
+            elif isinstance(item, dict):
+                summary = item.get("summary") or item.get("name") or item.get("label") or item.get("title")
+                if summary:
+                    lines.append(str(summary))
+        return lines
+
+    @staticmethod
+    def _first_list(data: dict[str, Any], *keys: str) -> list[Any]:
+        for key in keys:
+            value = data.get(key)
+            if isinstance(value, list):
+                return value
+        return []
+
     def _build_shopping_lines(self, meals: list[dict[str, Any]]) -> list[str]:
         """Build a shopping list from the current meals.
 
-        Dinner Genie returns a scaled shopping list for generated week plans. When one
-        day is replaced locally, we rebuild the list from ingredientsV2 and scale each
-        recipe to the configured number of servings.
+        Legacy helper kept for compatibility with older data. Savelio now returns the
+        current shopping list with the weekplanning, so normal refreshes no longer
+        rebuild this locally.
         """
         aggregated: dict[tuple[str, str], float] = {}
         display_names: dict[tuple[str, str], str] = {}

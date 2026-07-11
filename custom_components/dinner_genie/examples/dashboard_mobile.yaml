@@ -112,7 +112,7 @@ button_card_templates:
 
 views:
   - type: sections
-    title: Dinner Genie
+    title: Savelio
     path: dinner-genie
     icon: mdi:silverware-fork-knife
     max_columns: 1
@@ -124,11 +124,11 @@ views:
         cards:
           - type: markdown
             content: >
-              # 🧞 Dinner Genie
+              # Savelio
 
               Wat eten we deze week?
 
-              Stel het aantal dagen en personen in en genereer daarna een nieuw weekmenu.
+              Beheer je weekplanning in Savelio en vernieuw hier de actuele planning.
             card_mod:
               style: |
                 ha-card {
@@ -136,22 +136,6 @@ views:
                   padding: 12px;
                   background: linear-gradient(135deg, #2a211d, #171717);
                 }
-          - type: tile
-            entity: number.dinner_genie_aantal_dagen
-            name: Aantal dagen
-            icon: mdi:calendar-week
-          - type: tile
-            entity: number.dinner_genie_aantal_personen
-            name: Aantal personen
-            icon: mdi:account-group
-          - type: tile
-            entity: select.dinner_genie_dieet
-            name: Dieet
-            icon: mdi:sprout
-          - type: tile
-            entity: select.dinner_genie_recepttype
-            name: Recepttype
-            icon: mdi:food
           - type: tile
             entity: button.dinner_genie_genereer_weekmenu
             name: Vernieuwen
@@ -164,7 +148,7 @@ views:
         column_span: 1
         cards:
           - type: heading
-            heading: 🍽️ Weekmenu
+            heading: Savelio weekplanning
           - type: markdown
             content: |
               ## Deze week
@@ -290,14 +274,6 @@ views:
               **🌱 Dieet:** {{ state_attr('sensor.dinner_genie_dag_1','diet_type') }}  
               **🏷️ Categorie:** {{ state_attr('sensor.dinner_genie_dag_1','category') }}
 
-          - type: tile
-            entity: button.dinner_genie_vervang_dag_1
-            name: Vervang dit gerecht
-            icon: mdi:refresh
-            color: orange
-            tap_action:
-              action: toggle
-
           - type: heading
             heading: Ingrediënten
 
@@ -331,14 +307,6 @@ views:
               **⏱ Bereidingstijd:** {{ state_attr('sensor.dinner_genie_dag_2','prep_time') }}  
               **🌱 Dieet:** {{ state_attr('sensor.dinner_genie_dag_2','diet_type') }}  
               **🏷️ Categorie:** {{ state_attr('sensor.dinner_genie_dag_2','category') }}
-
-          - type: tile
-            entity: button.dinner_genie_vervang_dag_2
-            name: Vervang dit gerecht
-            icon: mdi:refresh
-            color: orange
-            tap_action:
-              action: toggle
 
           - type: heading
             heading: Ingrediënten
@@ -374,14 +342,6 @@ views:
               **🌱 Dieet:** {{ state_attr('sensor.dinner_genie_dag_3','diet_type') }}  
               **🏷️ Categorie:** {{ state_attr('sensor.dinner_genie_dag_3','category') }}
 
-          - type: tile
-            entity: button.dinner_genie_vervang_dag_3
-            name: Vervang dit gerecht
-            icon: mdi:refresh
-            color: orange
-            tap_action:
-              action: toggle
-
           - type: heading
             heading: Ingrediënten
 
@@ -415,14 +375,6 @@ views:
               **⏱ Bereidingstijd:** {{ state_attr('sensor.dinner_genie_dag_4','prep_time') }}  
               **🌱 Dieet:** {{ state_attr('sensor.dinner_genie_dag_4','diet_type') }}  
               **🏷️ Categorie:** {{ state_attr('sensor.dinner_genie_dag_4','category') }}
-
-          - type: tile
-            entity: button.dinner_genie_vervang_dag_4
-            name: Vervang dit gerecht
-            icon: mdi:refresh
-            color: orange
-            tap_action:
-              action: toggle
 
           - type: heading
             heading: Ingrediënten
@@ -458,14 +410,6 @@ views:
               **🌱 Dieet:** {{ state_attr('sensor.dinner_genie_dag_5','diet_type') }}  
               **🏷️ Categorie:** {{ state_attr('sensor.dinner_genie_dag_5','category') }}
 
-          - type: tile
-            entity: button.dinner_genie_vervang_dag_5
-            name: Vervang dit gerecht
-            icon: mdi:refresh
-            color: orange
-            tap_action:
-              action: toggle
-
           - type: heading
             heading: Ingrediënten
 
@@ -500,14 +444,6 @@ views:
               **🌱 Dieet:** {{ state_attr('sensor.dinner_genie_dag_6','diet_type') }}  
               **🏷️ Categorie:** {{ state_attr('sensor.dinner_genie_dag_6','category') }}
 
-          - type: tile
-            entity: button.dinner_genie_vervang_dag_6
-            name: Vervang dit gerecht
-            icon: mdi:refresh
-            color: orange
-            tap_action:
-              action: toggle
-
           - type: heading
             heading: Ingrediënten
 
@@ -541,14 +477,6 @@ views:
               **⏱ Bereidingstijd:** {{ state_attr('sensor.dinner_genie_dag_7','prep_time') }}  
               **🌱 Dieet:** {{ state_attr('sensor.dinner_genie_dag_7','diet_type') }}  
               **🏷️ Categorie:** {{ state_attr('sensor.dinner_genie_dag_7','category') }}
-
-          - type: tile
-            entity: button.dinner_genie_vervang_dag_7
-            name: Vervang dit gerecht
-            icon: mdi:refresh
-            color: orange
-            tap_action:
-              action: toggle
 
           - type: heading
             heading: Ingrediënten

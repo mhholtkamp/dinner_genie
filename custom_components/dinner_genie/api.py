@@ -8,7 +8,7 @@ import async_timeout
 
 
 class DinnerGenieApiError(Exception):
-    """Raised when the Dinner Genie API returns an error."""
+    """Raised when the Savelio API returns an error."""
 
 
 class DinnerGenieClient:
@@ -48,7 +48,7 @@ class DinnerGenieClient:
                         raise DinnerGenieApiError("API response is geen JSON object")
                     return data
         except aiohttp.ClientError as err:
-            raise DinnerGenieApiError(f"Kan Dinner Genie niet bereiken: {err}") from err
+            raise DinnerGenieApiError(f"Kan Savelio niet bereiken: {err}") from err
 
     async def recipes(self, **filters: Any) -> dict[str, Any]:
         return await self._get("recipes", filters)
@@ -56,9 +56,15 @@ class DinnerGenieClient:
     async def random(self, **filters: Any) -> dict[str, Any]:
         return await self._get("random", filters)
 
-    async def week_plan(self, days: int, servings: int, **filters: Any) -> dict[str, Any]:
-        params = {"days": days, "servings": servings, **filters}
-        return await self._get("week-plan", params)
+    async def week_planning(self) -> dict[str, Any]:
+        last_error: DinnerGenieApiError | None = None
+        for endpoint in ("week-planning", "week-planning/current", "weekplanning", "week-plan/current"):
+            try:
+                return await self._get(endpoint)
+            except DinnerGenieApiError as err:
+                last_error = err
+
+        raise last_error or DinnerGenieApiError("Kan weekplanning niet ophalen")
 
     async def validate(self) -> None:
         await self.recipes(limit=1)

@@ -31,7 +31,7 @@ class DinnerGenieNumber(NumberEntity):
 
     @property
     def device_info(self):
-        return {"identifiers": {(DOMAIN, self.coordinator.entry.entry_id)}, "name": "Dinner Genie"}
+        return {"identifiers": {(DOMAIN, self.coordinator.entry.entry_id)}, "name": "Savelio"}
 
     @property
     def native_value(self) -> int:

@@ -26,11 +26,11 @@ class DinnerGenieBaseButton(ButtonEntity):
 
     @property
     def device_info(self):
-        return {"identifiers": {(DOMAIN, self.coordinator.entry.entry_id)}, "name": "Dinner Genie"}
+        return {"identifiers": {(DOMAIN, self.coordinator.entry.entry_id)}, "name": "Savelio"}
 
 
 class DinnerGenieGenerateWeekMenuButton(DinnerGenieBaseButton):
-    _attr_name = "Genereer weekmenu"
+    _attr_name = "Vernieuw weekplanning"
     _attr_icon = "mdi:calendar-refresh"
 
     def __init__(self, coordinator) -> None:
@@ -64,7 +64,7 @@ class DinnerGenieReplaceDayButton(DinnerGenieBaseButton):
 
     @property
     def available(self) -> bool:
-        return self.coordinator.last_update_success and self.day_number <= self.coordinator.days
+        return False
 
     async def async_press(self) -> None:
         await self.coordinator.async_replace_day(self.day_number)

@@ -31,7 +31,7 @@ class DinnerGenieBaseSensor(CoordinatorEntity, SensorEntity):
 
     @property
     def device_info(self):
-        return {"identifiers": {(DOMAIN, self.coordinator.entry.entry_id)}, "name": "Dinner Genie"}
+        return {"identifiers": {(DOMAIN, self.coordinator.entry.entry_id)}, "name": "Savelio"}
 
 
 def _format_amount(amount: Any) -> str | None:
@@ -82,22 +82,22 @@ def _recipe_attributes(recipe: dict[str, Any] | None) -> dict[str, Any]:
     if not isinstance(recipe, dict) or not recipe:
         return {}
 
-    ingredients_v2 = recipe.get("ingredientsV2") or []
+    ingredients_v2 = recipe.get("ingredientsV2") or recipe.get("ingredients_v2") or []
     ingredients_raw = recipe.get("ingredients") or []
     ingredients_formatted = _format_ingredients(ingredients_v2, ingredients_raw)
-    image_url = recipe.get("imageUrl") or PLACEHOLDER_IMAGE_URL
+    image_url = recipe.get("imageUrl") or recipe.get("image_url") or recipe.get("displayImage") or recipe.get("display_image") or PLACEHOLDER_IMAGE_URL
 
     return {
-        "recipe_id": recipe.get("id"),
+        "recipe_id": recipe.get("id") or recipe.get("recipe_id"),
         "name": recipe.get("name"),
         "description": recipe.get("description"),
         "image_url": image_url,
         "display_image": image_url,
-        "has_recipe_image": bool(recipe.get("imageUrl")),
-        "prep_time": recipe.get("prepTime"),
+        "has_recipe_image": bool(recipe.get("imageUrl") or recipe.get("image_url") or recipe.get("displayImage") or recipe.get("display_image")),
+        "prep_time": recipe.get("prepTime") or recipe.get("prep_time"),
         "category": recipe.get("category"),
-        "recipe_type": recipe.get("recipeType"),
-        "diet_type": recipe.get("dietType"),
+        "recipe_type": recipe.get("recipeType") or recipe.get("recipe_type"),
+        "diet_type": recipe.get("dietType") or recipe.get("diet_type"),
         "servings": recipe.get("servings"),
         "ingredients": ingredients_raw,
         "ingredients_v2": ingredients_v2,
@@ -106,6 +106,10 @@ def _recipe_attributes(recipe: dict[str, Any] | None) -> dict[str, Any]:
         "instructions": recipe.get("instructions"),
         "created_at": recipe.get("createdAt"),
         "group_id": recipe.get("groupId"),
+        "planning_day": recipe.get("planning_day"),
+        "planning_date": recipe.get("planning_date"),
+        "planning_weekday": recipe.get("planning_weekday"),
+        "planning_label": recipe.get("planning_label"),
     }
 
 
@@ -203,8 +207,10 @@ class DinnerGenieWeekMenuSensor(DinnerGenieBaseSensor):
     def extra_state_attributes(self):
         data = self.coordinator.data or {}
         meals = data.get("meals") or []
+        day_entries = data.get("day_entries") or []
         return {
             "meals": meals,
+            "days": day_entries,
             "meal_names": [meal.get("name") for meal in meals if isinstance(meal, dict)],
             "shopping_lines": data.get("shopping_lines") or [],
         }
@@ -228,20 +234,32 @@ class DinnerGenieDayMealSensor(DinnerGenieBaseSensor):
 
     @property
     def available(self) -> bool:
-        return super().available and self.day_number <= self.coordinator.days
+        return super().available and self._day_entry is not None
 
     @property
     def extra_state_attributes(self):
         recipe = self._recipe
         attributes = _recipe_attributes(recipe)
         attributes["day"] = self.day_number
+        day_entry = self._day_entry or {}
+        attributes["date"] = day_entry.get("date")
+        attributes["weekday"] = day_entry.get("weekday")
+        attributes["label"] = day_entry.get("label")
         return attributes
 
     @property
-    def _recipe(self) -> dict[str, Any] | None:
-        meals = (self.coordinator.data or {}).get("meals") or []
+    def _day_entry(self) -> dict[str, Any] | None:
+        day_entries = (self.coordinator.data or {}).get("day_entries") or []
         index = self.day_number - 1
-        if index >= len(meals):
+        if index >= len(day_entries):
             return None
-        recipe = meals[index]
+        entry = day_entries[index]
+        return entry if isinstance(entry, dict) else None
+
+    @property
+    def _recipe(self) -> dict[str, Any] | None:
+        entry = self._day_entry
+        if not entry:
+            return None
+        recipe = entry.get("recipe")
         return recipe if isinstance(recipe, dict) else None

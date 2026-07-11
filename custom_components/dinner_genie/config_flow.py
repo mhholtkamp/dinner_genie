@@ -34,7 +34,7 @@ class DinnerGenieConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 await self.async_set_unique_id(user_input[CONF_GROUP_ID])
                 self._abort_if_unique_id_configured()
                 return self.async_create_entry(
-                    title="Dinner Genie",
+                    title="Savelio",
                     data=user_input,
                 )
 

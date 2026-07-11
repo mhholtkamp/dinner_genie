@@ -6,7 +6,7 @@ CONF_BASE_URL = "base_url"
 CONF_GROUP_ID = "group_id"
 CONF_API_KEY = "api_key"
 
-DEFAULT_BASE_URL = "https://dinner-genie.vercel.app/api"
+DEFAULT_BASE_URL = "https://savelio.vercel.app/api"
 
 PLATFORMS = ["sensor", "button", "number", "todo", "select"]
 

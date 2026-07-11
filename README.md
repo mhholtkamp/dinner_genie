@@ -1,22 +1,22 @@
-# Dinner Genie Home Assistant integration
+# Savelio Home Assistant integration
 
-![Dinner Genie](images/banner.png)
+![Savelio](images/banner.png)
 
 [![Hassfest](https://github.com/mhholtkamp/dinner_genie/actions/workflows/hassfest.yaml/badge.svg)](https://github.com/mhholtkamp/dinner_genie/actions/workflows/hassfest.yaml)
 [![HACS](https://github.com/mhholtkamp/dinner_genie/actions/workflows/hacs.yaml/badge.svg)](https://github.com/mhholtkamp/dinner_genie/actions/workflows/hacs.yaml)
 [![Python checks](https://github.com/mhholtkamp/dinner_genie/actions/workflows/python.yaml/badge.svg)](https://github.com/mhholtkamp/dinner_genie/actions/workflows/python.yaml)
 
-Custom integration voor Dinner Genie.
+Custom integration voor Savelio.
 
 ## Installatie via HACS custom repository
 
 1. Voeg deze repository toe in HACS als type `Integration`.
-2. Installeer Dinner Genie.
+2. Installeer Savelio.
 3. Herstart Home Assistant.
 4. Ga naar **Instellingen > Apparaten & diensten > Integratie toevoegen**.
-5. Kies **Dinner Genie**.
+5. Kies **Savelio**.
 6. Vul in:
-   - API basis-URL, bijvoorbeeld `https://dinner-genie.vercel.app/api`
+   - API basis-URL, bijvoorbeeld `https://savelio.vercel.app/api`
    - Groeps-ID
    - API key
 
@@ -26,7 +26,7 @@ De integratie maakt automatisch deze entiteiten aan:
 
 - `number.dinner_genie_aantal_dagen` maximaal 7
 - `number.dinner_genie_aantal_personen`
-- `button.dinner_genie_genereer_weekmenu`
+- `button.dinner_genie_genereer_weekmenu` vernieuwt de actuele Savelio weekplanning in Home Assistant
 - `button.dinner_genie_kies_willekeurig_gerecht`
 - `sensor.dinner_genie_aantal_recepten`
 - `sensor.dinner_genie_willekeurig_gerecht`
@@ -44,12 +44,12 @@ De integratie maakt automatisch deze entiteiten aan:
 
 ## Gebruik
 
-Stel het aantal dagen en personen in met de number-entiteiten. Druk daarna op **Genereer weekmenu**.
+De weekplanning wordt in de Savelio webinterface gemaakt. Home Assistant haalt de actuele planning op via de API. Gebruik **Vernieuw weekplanning** om de laatste planning direct op te halen.
 
 De integratie roept dan aan:
 
 ```text
-/api/groups/{groupId}/week-plan?days=5&servings=4
+/api/groups/{groupId}/week-planning
 ```
 
 met de waarden uit Home Assistant.
@@ -110,22 +110,13 @@ Card Mod
 
 Gebruik `dashboard_minimal.yaml` als je zonder custom frontend kaarten wilt starten.
 
-## Eén dag vervangen
+## Weekplanning beheren
 
-Vanaf versie 2.2.0 maakt de integratie per dag een vervangknop aan:
-
-```text
-button.dinner_genie_vervang_dag_1
-button.dinner_genie_vervang_dag_2
-...
-button.dinner_genie_vervang_dag_7
-```
-
-Als je een dag vervangt, kiest Dinner Genie een gerecht dat nog niet in de andere dagen van het weekmenu staat. Daarna wordt de boodschappenlijst opnieuw opgebouwd op basis van het actuele weekmenu.
+Vanaf v3.0.0 beheert Savelio de weekplanning in de webinterface. Home Assistant vervangt of genereert dagen niet meer lokaal, maar leest de actuele planning en boodschappenlijst uit de API.
 
 ## Lovelace card
 
-Vanaf v2.3.0 bevat Dinner Genie een eigen Lovelace card. Voeg deze resource toe in Home Assistant:
+Vanaf v2.3.0 bevat Savelio een eigen Lovelace card. Voeg deze resource toe in Home Assistant:
 
 ```text
 /api/dinner_genie/www/dinner-genie-card.js
@@ -136,15 +127,15 @@ Type: JavaScript module.
 Als Home Assistant een oude versie blijft laden, voeg tijdelijk een versie-query toe, bijvoorbeeld:
 
 ```text
-/api/dinner_genie/www/dinner-genie-card.js?v=2.4.3
+/api/dinner_genie/www/dinner-genie-card.js?v=3.0.0
 ```
 
 Gebruik voor nieuwe dashboards de v2-kaart. Die omzeilt oude frontend-registraties van eerdere card-versies:
 
 ```yaml
-type: custom:dinner-genie-card-v2
+type: custom:savelio-card
 mode: week
-title: 🍽️ Weekmenu
+title: Savelio weekplanning
 days_entity: number.dinner_genie_aantal_dagen
 generate_button: button.dinner_genie_genereer_weekmenu
 # Tijdelijk aanzetten bij frontend-cache of entity-problemen:
@@ -154,9 +145,9 @@ generate_button: button.dinner_genie_genereer_weekmenu
 Voorbeeld weekmenu:
 
 ```yaml
-type: custom:dinner-genie-card-v2
+type: custom:savelio-card
 mode: week
-title: 🍽️ Weekmenu
+title: Savelio weekplanning
 days_entity: number.dinner_genie_aantal_dagen
 generate_button: button.dinner_genie_genereer_weekmenu
 # Tijdelijk aanzetten bij frontend-cache of entity-problemen:
@@ -166,7 +157,7 @@ generate_button: button.dinner_genie_genereer_weekmenu
 Voorbeeld receptenoverzicht:
 
 ```yaml
-type: custom:dinner-genie-card-v2
+type: custom:savelio-card
 mode: recipes
 title: 📖 Recepten
 recipes_entity: sensor.dinner_genie_recepten

@@ -1,20 +1,16 @@
 views:
-  - title: Dinner Genie
+  - title: Savelio
     path: dinner-genie
     icon: mdi:silverware-fork-knife
     cards:
       - type: entities
-        title: Dinner Genie
+        title: Savelio
         entities:
-          - number.dinner_genie_aantal_dagen
-          - number.dinner_genie_aantal_personen
-          - select.dinner_genie_dieet
-          - select.dinner_genie_recepttype
           - button.dinner_genie_genereer_weekmenu
           - button.dinner_genie_kies_willekeurig_gerecht
 
       - type: entities
-        title: Weekmenu
+        title: Weekplanning
         entities:
           - sensor.dinner_genie_dag_1
           - sensor.dinner_genie_dag_2
@@ -27,13 +23,3 @@ views:
       - type: todo-list
         entity: todo.dinner_genie_boodschappen
         title: Boodschappen
-      - type: entities
-        title: Gerecht vervangen
-        entities:
-          - button.dinner_genie_vervang_dag_1
-          - button.dinner_genie_vervang_dag_2
-          - button.dinner_genie_vervang_dag_3
-          - button.dinner_genie_vervang_dag_4
-          - button.dinner_genie_vervang_dag_5
-          - button.dinner_genie_vervang_dag_6
-          - button.dinner_genie_vervang_dag_7

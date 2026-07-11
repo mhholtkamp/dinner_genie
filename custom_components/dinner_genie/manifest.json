@@ -1,6 +1,6 @@
 {
   "domain": "dinner_genie",
-  "name": "Dinner Genie",
+  "name": "Savelio",
   "after_dependencies": [
     "http"
   ],
@@ -12,5 +12,5 @@
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/mhholtkamp/dinner_genie/issues",
   "requirements": [],
-  "version": "2.4.3"
+  "version": "3.0.0"
 }
