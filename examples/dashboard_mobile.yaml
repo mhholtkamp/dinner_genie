@@ -8,7 +8,7 @@ button_card_templates:
       ]]]
     entity_picture: |
       [[[
-        return entity.attributes.display_image || entity.attributes.image_url || "/api/dinner_genie/assets/placeholder_recipe.png";
+        return entity.attributes.display_image || entity.attributes.image_url || "/api/dinner_genie/assets/savelio_placeholder_recipe.png";
       ]]]
     label: |
       [[[
@@ -147,14 +147,6 @@ views:
                   padding: 12px;
                   background: linear-gradient(135deg, #2a211d, #171717);
                 }
-          - type: tile
-            entity: button.dinner_genie_genereer_weekmenu
-            name: Vernieuwen
-            icon: mdi:refresh
-            color: orange
-            tap_action:
-              action: toggle
-
       - type: grid
         column_span: 1
         cards:

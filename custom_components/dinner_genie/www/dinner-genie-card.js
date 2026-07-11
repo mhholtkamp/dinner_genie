@@ -1,5 +1,5 @@
 
-const DINNER_GENIE_CARD_VERSION = '3.0.2';
+const DINNER_GENIE_CARD_VERSION = '3.0.3';
 const DINNER_GENIE_CARD_TAG = 'dinner-genie-card';
 const DINNER_GENIE_CARD_V2_TAG = 'dinner-genie-card-v2';
 const DINNER_GENIE_CARD_VERSIONED_TAG = 'dinner-genie-card-v239';
@@ -210,7 +210,7 @@ class DinnerGenieCard extends HTMLElement {
       diet_type: 'vegan',
       category: 'pasta, vegan',
       description: 'Romige pasta met spinazie, tomaat en een frisse kruidige saus.',
-      display_image: '/api/dinner_genie/assets/placeholder_recipe.png',
+      display_image: '/api/dinner_genie/assets/savelio_placeholder_recipe.png',
       ingredients_formatted: ['spaghetti', 'spinazie', 'tomaat', 'vegan roomsaus'],
       instructions: 'Kook de pasta. Bak de groenten kort aan en meng alles met de saus.',
     };
@@ -229,7 +229,7 @@ class DinnerGenieCard extends HTMLElement {
   }
 
   _image(recipe) {
-    return recipe?.display_image || recipe?.image_url || '/api/dinner_genie/assets/placeholder_recipe.png';
+    return recipe?.display_image || recipe?.image_url || '/api/dinner_genie/assets/savelio_placeholder_recipe.png';
   }
 
   _recipeTitle(recipe) {
@@ -339,7 +339,6 @@ class DinnerGenieCard extends HTMLElement {
             <h2>${this._escape(this.config.title || 'Savelio weekplanning')}</h2>
             <p class="muted">Klik op details om het recept te bekijken.</p>
           </div>
-          <button class="header-action" data-action="generate">↻ Vernieuwen</button>
         </div>
         <div class="grid week-grid">${cards.join('')}</div>
       </ha-card>
@@ -552,13 +551,6 @@ class DinnerGenieCard extends HTMLElement {
 
   _bindEvents() {
     const root = this.shadowRoot || this;
-    root.querySelectorAll('[data-action="generate"]').forEach((button) => {
-      button.addEventListener('click', (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        this._callButton(this.config.generate_button);
-      });
-    });
     this._bindDetailButtons();
     root.querySelectorAll('[data-action="close"]').forEach((item) => {
       item.addEventListener('click', (event) => {
@@ -593,7 +585,6 @@ class DinnerGenieCard extends HTMLElement {
       h2 { margin:0; font-size:28px; line-height:1.1; }
       .muted { margin:6px 0 0 0; opacity:.72; }
       .debug { margin:-4px 0 12px 0; padding:8px 10px; border-radius:10px; background:rgba(242,140,40,.16); color:var(--primary-text-color); font-size:12px; line-height:1.4; }
-      .header-action { border:0; border-radius:16px; background:#F28C28; color:white; padding:10px 14px; font-weight:700; cursor:pointer; }
       .grid { display:grid; gap:14px; align-items:stretch; }
       .grid > * { min-width:0; }
       .week-grid { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }

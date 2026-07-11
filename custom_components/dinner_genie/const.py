@@ -25,4 +25,4 @@ MAX_SERVINGS = 50
 DIET_OPTIONS = ["all", "vegetarian", "vegan"]
 RECIPE_TYPE_OPTIONS = ["dinner", "breakfast", "baking", "lunch", "snack", "other"]
 
-PLACEHOLDER_IMAGE_URL = f"/api/{DOMAIN}/assets/placeholder_recipe.png"
+PLACEHOLDER_IMAGE_URL = f"/api/{DOMAIN}/assets/savelio_placeholder_recipe.png"

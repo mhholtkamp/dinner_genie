@@ -1,3 +1,8 @@
+## 3.0.3
+
+- Verwijdert de `Vernieuwen` knop uit de kop van de weekmenu-card.
+- Gebruikt een nieuw Savelio-placeholderpad om oude Dinner Genie placeholder-cache te omzeilen.
+
 ## 3.0.2
 
 - Verrijkt opgeslagen weekmenu-maaltijden met volledige receptdetails uit `/recipes`, zodat afbeeldingen, bereiding en ingrediënten beschikbaar blijven.
