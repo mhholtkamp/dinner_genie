@@ -127,7 +127,7 @@ Type: JavaScript module.
 Als Home Assistant een oude versie blijft laden, voeg tijdelijk een versie-query toe, bijvoorbeeld:
 
 ```text
-/api/dinner_genie/www/dinner-genie-card.js?v=3.0.5
+/api/dinner_genie/www/dinner-genie-card.js?v=3.0.6
 ```
 
 Gebruik voor nieuwe dashboards de v2-kaart. Die omzeilt oude frontend-registraties van eerdere card-versies:
@@ -169,6 +169,8 @@ mode: today
 title: Vandaag
 days_entity: number.dinner_genie_aantal_dagen
 ```
+
+`mode: day`, `mode: dag` en `mode: vandaag` werken als alias voor `mode: today`.
 
 Voorbeeld receptenoverzicht:
 

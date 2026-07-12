@@ -1,3 +1,9 @@
+## 3.0.6
+
+- Maakt de dagtegel robuuster door alle dagsensoren op datum te scannen, los van `days_entity`.
+- Ondersteunt `mode: today`, `mode: day`, `mode: vandaag` en `mode: dag` voor dezelfde dagtegel.
+- Toont in de preview van de dagtegel ook direct de datum van vandaag.
+
 ## 3.0.5
 
 - Geeft `days_entity` voorrang bij het aantal zichtbare weekmenu-kaarten.

@@ -1,5 +1,5 @@
 
-const DINNER_GENIE_CARD_VERSION = '3.0.5';
+const DINNER_GENIE_CARD_VERSION = '3.0.6';
 const DINNER_GENIE_CARD_TAG = 'dinner-genie-card';
 const DINNER_GENIE_CARD_V2_TAG = 'dinner-genie-card-v2';
 const DINNER_GENIE_CARD_VERSIONED_TAG = 'dinner-genie-card-v239';
@@ -54,7 +54,7 @@ class DinnerGenieCard extends HTMLElement {
   }
 
   getCardSize() {
-    return this.config?.mode === 'recipes' ? 6 : 4;
+    return this._mode() === 'recipes' ? 6 : 4;
   }
 
   static getStubConfig() {
@@ -73,6 +73,13 @@ class DinnerGenieCard extends HTMLElement {
 
   _dayEntity(day) {
     return this.config[`day_${day}_entity`] || `sensor.dinner_genie_dag_${day}`;
+  }
+
+  _mode() {
+    const mode = String(this.config?.mode || 'week').toLowerCase();
+    if (['recipes', 'recepten'].includes(mode)) return 'recipes';
+    if (['today', 'vandaag', 'day', 'dag'].includes(mode)) return 'today';
+    return 'week';
   }
 
   _weekDayCount() {
@@ -153,7 +160,7 @@ class DinnerGenieCard extends HTMLElement {
 
   _renderSignature() {
     if (!this.config || !this._hass) return '';
-    const mode = this.config.mode || 'week';
+    const mode = this._mode();
     if (mode === 'recipes') {
       const state = this._state(this.config.recipes_entity);
       return JSON.stringify({
@@ -222,10 +229,14 @@ class DinnerGenieCard extends HTMLElement {
   }
 
   _previewRecipe(entityId) {
+    const today = this._localIsoDate ? this._localIsoDate() : new Date().toISOString().slice(0, 10);
     return {
       entity_id: entityId,
       state: 'spaghetti spinazie',
       name: 'spaghetti spinazie',
+      planning_date: today,
+      planning_weekday: new Intl.DateTimeFormat('nl-NL', { weekday: 'long' }).format(new Date()),
+      planning_label: new Intl.DateTimeFormat('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date()),
       prep_time: '15',
       diet_type: 'vegan',
       category: 'pasta, vegan',
@@ -348,8 +359,8 @@ class DinnerGenieCard extends HTMLElement {
     return `${year}-${month}-${day}`;
   }
 
-  _weekRecipes() {
-    const maxDays = this._weekDayCount();
+  _weekRecipes(limit = this._weekDayCount()) {
+    const maxDays = Math.min(7, Math.max(1, Math.trunc(Number(limit) || 7)));
     const recipes = [];
     for (let day = 1; day <= maxDays; day += 1) {
       const recipe = this._recipeFromEntity(this._dayEntity(day));
@@ -361,7 +372,7 @@ class DinnerGenieCard extends HTMLElement {
 
   _todayRecipe() {
     const today = this._localIsoDate();
-    const recipes = this._weekRecipes();
+    const recipes = this._weekRecipes(7);
     return recipes.find(({ recipe }) => {
       const date = recipe?.planning_date || recipe?.date;
       return String(date || '').slice(0, 10) === today;
@@ -478,7 +489,7 @@ class DinnerGenieCard extends HTMLElement {
     const selectionStart = activeElement && 'selectionStart' in activeElement ? activeElement.selectionStart : null;
     const selectionEnd = activeElement && 'selectionEnd' in activeElement ? activeElement.selectionEnd : null;
     const dialogScrollTop = root.querySelector('.dialog')?.scrollTop ?? this._dialogScrollTop;
-    const mode = this.config.mode || 'week';
+    const mode = this._mode();
     root.innerHTML = `
       <style>${this._styles()}</style>
       ${mode === 'recipes' ? this._renderRecipes() : (mode === 'today' ? this._renderToday() : this._renderWeek())}
