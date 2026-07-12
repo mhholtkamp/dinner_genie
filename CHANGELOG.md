@@ -1,3 +1,10 @@
+## 3.0.11
+
+- Voorkomt lege weekmenu-kaarten als de geconfigureerde weekmenu-sensor wel bestaat maar geen bruikbare items bevat.
+- Ondersteunt extra weekmenu-bronnen zoals geneste `week_plan`/`weekMenu` attributen en `meal_names`.
+- Toont een lege melding en uitgebreidere debug-info als de card geen weekmenu-data vindt.
+- Introduceert `custom:savelio-card-v3011` om oude frontend-registraties te omzeilen.
+
 ## 3.0.10
 
 - Maakt de Savelio card robuuster na het verwijderen van de dagsensoren.

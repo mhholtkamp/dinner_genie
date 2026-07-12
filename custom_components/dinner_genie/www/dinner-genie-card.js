@@ -1,10 +1,10 @@
 
-const DINNER_GENIE_CARD_VERSION = '3.0.10';
+const DINNER_GENIE_CARD_VERSION = '3.0.11';
 const DINNER_GENIE_CARD_TAG = 'dinner-genie-card';
 const DINNER_GENIE_CARD_V2_TAG = 'dinner-genie-card-v2';
 const DINNER_GENIE_CARD_VERSIONED_TAG = 'dinner-genie-card-v239';
 const SAVELIO_CARD_TAG = 'savelio-card';
-const SAVELIO_CARD_VERSIONED_TAG = 'savelio-card-v3010';
+const SAVELIO_CARD_VERSIONED_TAG = 'savelio-card-v3011';
 
 class DinnerGenieCard extends HTMLElement {
   constructor() {
@@ -229,7 +229,7 @@ class DinnerGenieCard extends HTMLElement {
 
   _weekMenuState() {
     const configured = this._state(this.config.weekmenu_entity);
-    if (configured) return { entityId: this.config.weekmenu_entity, state: configured };
+    if (this._hasWeekMenuData(configured)) return { entityId: this.config.weekmenu_entity, state: configured };
 
     const candidates = [
       'sensor.dinner_genie_weekmenu',
@@ -237,24 +237,27 @@ class DinnerGenieCard extends HTMLElement {
     ];
     for (const entityId of candidates) {
       const state = this._state(entityId);
-      if (state) return { entityId, state };
+      if (this._hasWeekMenuData(state)) return { entityId, state };
     }
 
     const entries = Object.entries(this._hass?.states || {});
     const match = entries.find(([entityId, state]) => {
       if (!entityId.startsWith('sensor.')) return false;
+      if (!this._hasWeekMenuData(state)) return false;
       const attributes = state?.attributes || {};
-      const hasWeekMenuData = Array.isArray(attributes.days) || Array.isArray(attributes.meals);
-      if (!hasWeekMenuData) return false;
       const haystack = `${entityId} ${attributes.friendly_name || ''}`.toLowerCase();
       return haystack.includes('weekmenu') || haystack.includes('savelio') || haystack.includes('dinner');
     }) || entries.find(([entityId, state]) => {
       if (!entityId.startsWith('sensor.')) return false;
-      const attributes = state?.attributes || {};
-      return Array.isArray(attributes.days) || Array.isArray(attributes.meals);
+      return this._hasWeekMenuData(state);
     });
 
-    return match ? { entityId: match[0], state: match[1] } : { entityId: '', state: null };
+    return match ? { entityId: match[0], state: match[1] } : { entityId: this.config.weekmenu_entity, state: configured || null };
+  }
+
+  _hasWeekMenuData(state) {
+    const attributes = state?.attributes || {};
+    return this._weekMenuSource(attributes).length > 0;
   }
 
   _recipeFromWeekMenuItem(item, index, entityId) {
@@ -282,13 +285,28 @@ class DinnerGenieCard extends HTMLElement {
     if (this.config?.preview) return [{ day: 1, recipe: this._previewRecipe('preview_recipe') }];
     const { entityId, state } = this._weekMenuState();
     const attributes = state?.attributes || {};
-    const days = Array.isArray(attributes.days) ? attributes.days : [];
-    const meals = Array.isArray(attributes.meals) ? attributes.meals : [];
-    const source = days.length ? days : meals;
+    const source = this._weekMenuSource(attributes);
     return source
       .slice(0, Math.min(7, Math.max(1, Math.trunc(Number(limit) || 7))))
       .map((item, index) => this._recipeFromWeekMenuItem(item, index, entityId))
       .filter((item) => item?.recipe && !['unavailable', 'unknown'].includes(item.recipe.state));
+  }
+
+  _weekMenuSource(attributes) {
+    const days = Array.isArray(attributes?.days) ? attributes.days : [];
+    if (days.length) return days;
+
+    const meals = Array.isArray(attributes?.meals) ? attributes.meals : [];
+    if (meals.length) return meals;
+
+    const nested = attributes?.week_plan || attributes?.weekPlan || attributes?.week_menu || attributes?.weekMenu;
+    if (nested && typeof nested === 'object') {
+      if (Array.isArray(nested.days) && nested.days.length) return nested.days;
+      if (Array.isArray(nested.meals) && nested.meals.length) return nested.meals;
+    }
+
+    const names = Array.isArray(attributes?.meal_names) ? attributes.meal_names : [];
+    return names.filter(Boolean).map((name, index) => ({ day: index + 1, name }));
   }
 
   _allRecipes() {
@@ -461,7 +479,7 @@ class DinnerGenieCard extends HTMLElement {
       <ha-card>
         ${debug}
         ${this._renderHeader('Savelio weekplanning', 'Klik op details om het recept te bekijken.')}
-        <div class="grid week-grid">${cards.join('')}</div>
+        <div class="grid week-grid">${cards.join('') || '<p class="empty">Geen weekmenu gevonden.</p>'}</div>
       </ha-card>
       ${this._renderDialog()}
     `;
@@ -481,9 +499,11 @@ class DinnerGenieCard extends HTMLElement {
 
   _renderDebug(maxDays, visibleCards) {
     const daysState = this._state(this.config.days_entity);
+    const weekMenu = this._weekMenuState();
+    const sourceCount = this._weekMenuSource(weekMenu.state?.attributes || {}).length;
     return `
       <div class="debug">
-        Card v${DINNER_GENIE_CARD_VERSION} | ${this.config.days_entity}: ${this._escape(daysState?.state || 'niet gevonden')} | dagen: ${maxDays} | kaarten: ${visibleCards}
+        Card v${DINNER_GENIE_CARD_VERSION} | ${this.config.days_entity}: ${this._escape(daysState?.state || 'niet gevonden')} | weekmenu: ${this._escape(weekMenu.entityId || 'niet gevonden')} | bronitems: ${sourceCount} | dagen: ${maxDays} | kaarten: ${visibleCards}
       </div>
     `;
   }
@@ -776,7 +796,7 @@ if (!customElements.get(SAVELIO_CARD_TAG)) {
   customElements.define(SAVELIO_CARD_TAG, SavelioCard);
 }
 if (!customElements.get(SAVELIO_CARD_VERSIONED_TAG)) {
-  customElements.define(SAVELIO_CARD_VERSIONED_TAG, class SavelioCardV3010 extends SavelioCard {});
+  customElements.define(SAVELIO_CARD_VERSIONED_TAG, class SavelioCardV3011 extends SavelioCard {});
 }
 
 const isLegacyDinnerGeniePickerCard = (card) => {
