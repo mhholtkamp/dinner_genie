@@ -8,12 +8,12 @@ views:
       - type: grid
         column_span: 3
         cards:
-          - type: custom:savelio-card
+          - type: custom:savelio-card-v307
             mode: week
             title: Savelio weekplanning
             days_entity: number.dinner_genie_aantal_dagen
             max_days: 7
-          - type: custom:savelio-card
+          - type: custom:savelio-card-v307
             mode: today
             title: Vandaag
             days_entity: number.dinner_genie_aantal_dagen
@@ -27,7 +27,7 @@ views:
       - type: grid
         column_span: 3
         cards:
-          - type: custom:savelio-card
+          - type: custom:savelio-card-v307
             mode: recipes
             title: 📖 Recepten
             recipes_entity: sensor.dinner_genie_recepten

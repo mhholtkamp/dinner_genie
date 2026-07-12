@@ -1,3 +1,9 @@
+## 3.0.7
+
+- Introduceert `custom:savelio-card-v307` als nieuwe frontend-tag om oude browser-registraties van `custom:savelio-card` te omzeilen.
+- Registreert in de kaartkiezer nog steeds maar één zichtbare `Savelio Card`.
+- Werkt de voorbeelden bij zodat de vandaag-kaart altijd de nieuwe renderer gebruikt.
+
 ## 3.0.6
 
 - Maakt de dagtegel robuuster door alle dagsensoren op datum te scannen, los van `days_entity`.

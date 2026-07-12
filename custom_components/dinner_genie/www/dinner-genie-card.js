@@ -1,9 +1,10 @@
 
-const DINNER_GENIE_CARD_VERSION = '3.0.6';
+const DINNER_GENIE_CARD_VERSION = '3.0.7';
 const DINNER_GENIE_CARD_TAG = 'dinner-genie-card';
 const DINNER_GENIE_CARD_V2_TAG = 'dinner-genie-card-v2';
 const DINNER_GENIE_CARD_VERSIONED_TAG = 'dinner-genie-card-v239';
 const SAVELIO_CARD_TAG = 'savelio-card';
+const SAVELIO_CARD_VERSIONED_TAG = 'savelio-card-v307';
 
 class DinnerGenieCard extends HTMLElement {
   constructor() {
@@ -59,7 +60,7 @@ class DinnerGenieCard extends HTMLElement {
 
   static getStubConfig() {
     return {
-      type: `custom:${SAVELIO_CARD_TAG}`,
+      type: `custom:${SAVELIO_CARD_VERSIONED_TAG}`,
       mode: 'week',
       title: 'Savelio weekplanning',
       max_days: 1,
@@ -690,7 +691,7 @@ if (!customElements.get(DINNER_GENIE_CARD_VERSIONED_TAG)) {
 class SavelioCard extends DinnerGenieCard {
   static getStubConfig() {
     return {
-      type: `custom:${SAVELIO_CARD_TAG}`,
+      type: `custom:${SAVELIO_CARD_VERSIONED_TAG}`,
       mode: 'week',
       title: 'Savelio weekplanning',
       max_days: 1,
@@ -702,17 +703,21 @@ class SavelioCard extends DinnerGenieCard {
 if (!customElements.get(SAVELIO_CARD_TAG)) {
   customElements.define(SAVELIO_CARD_TAG, SavelioCard);
 }
+if (!customElements.get(SAVELIO_CARD_VERSIONED_TAG)) {
+  customElements.define(SAVELIO_CARD_VERSIONED_TAG, class SavelioCardV307 extends SavelioCard {});
+}
 
 const isLegacyDinnerGeniePickerCard = (card) => {
   const haystack = `${card?.type || ''} ${card?.name || ''} ${card?.description || ''}`.toLowerCase();
   return haystack.includes('dinner-genie-card') ||
+    haystack.includes('savelio-card') ||
     haystack.includes('dinner genie') ||
     haystack.includes('dinner card');
 };
 
 const registerDinnerGeniePickerCard = () => {
   const savelioCard = {
-    type: SAVELIO_CARD_TAG,
+    type: SAVELIO_CARD_VERSIONED_TAG,
     name: 'Savelio Card',
     description: 'Weekplanning en receptenoverzicht voor Savelio',
     preview: true,
@@ -720,7 +725,7 @@ const registerDinnerGeniePickerCard = () => {
   };
   if (!Array.isArray(window.customCards)) window.customCards = [];
   const existingCards = window.customCards;
-  const cards = existingCards.filter((card) => !isLegacyDinnerGeniePickerCard(card) && card?.type !== SAVELIO_CARD_TAG);
+  const cards = existingCards.filter((card) => !isLegacyDinnerGeniePickerCard(card) && card?.type !== SAVELIO_CARD_VERSIONED_TAG);
   cards.push(savelioCard);
   existingCards.splice(0, existingCards.length, ...cards);
 };
