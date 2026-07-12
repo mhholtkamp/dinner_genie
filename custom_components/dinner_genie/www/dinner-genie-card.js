@@ -1,10 +1,10 @@
 
-const DINNER_GENIE_CARD_VERSION = '3.0.11';
+const DINNER_GENIE_CARD_VERSION = '3.0.12';
 const DINNER_GENIE_CARD_TAG = 'dinner-genie-card';
 const DINNER_GENIE_CARD_V2_TAG = 'dinner-genie-card-v2';
 const DINNER_GENIE_CARD_VERSIONED_TAG = 'dinner-genie-card-v239';
 const SAVELIO_CARD_TAG = 'savelio-card';
-const SAVELIO_CARD_VERSIONED_TAG = 'savelio-card-v3011';
+const SAVELIO_CARD_VERSIONED_TAG = 'savelio-card-v3012';
 
 class DinnerGenieCard extends HTMLElement {
   constructor() {
@@ -227,6 +227,64 @@ class DinnerGenieCard extends HTMLElement {
     return { state: state.state, entity_id: entityId, ...(state.attributes || {}) };
   }
 
+  _recipeId(recipe) {
+    const value = recipe?.recipe_id || recipe?.id || recipe?.recipeId;
+    return value === undefined || value === null ? '' : String(value);
+  }
+
+  _fullRecipeFor(recipe) {
+    const recipeId = this._recipeId(recipe);
+    if (!recipeId) return null;
+    return this._rawRecipes().find((item) => this._recipeId(item) === recipeId) || null;
+  }
+
+  _normalizedRecipe(recipe) {
+    if (!recipe || typeof recipe !== 'object') return recipe;
+    const fullRecipe = recipe.__normalized ? null : this._fullRecipeFor(recipe);
+    const merged = fullRecipe ? {
+      ...recipe,
+      ...fullRecipe,
+      planning_day: recipe.planning_day || fullRecipe.planning_day,
+      planning_date: recipe.planning_date || fullRecipe.planning_date,
+      planning_weekday: recipe.planning_weekday || fullRecipe.planning_weekday,
+      planning_label: recipe.planning_label || fullRecipe.planning_label,
+    } : { ...recipe };
+    const ingredientsV2 = merged.ingredients_v2 || merged.ingredientsV2 || [];
+    const ingredients = merged.ingredients || [];
+    const ingredientsFormatted = merged.ingredients_formatted || this._formatIngredients(ingredientsV2, ingredients);
+    const image = merged.display_image || merged.image_url || merged.imageUrl || merged.displayImage;
+
+    return {
+      ...merged,
+      __normalized: true,
+      recipe_id: this._recipeId(merged),
+      name: merged.name || merged.state,
+      description: merged.description || '',
+      display_image: image,
+      image_url: image,
+      prep_time: merged.prep_time || merged.prepTime || '',
+      diet_type: merged.diet_type || merged.dietType || '',
+      recipe_type: merged.recipe_type || merged.recipeType || '',
+      ingredients_v2: ingredientsV2,
+      ingredients_formatted: ingredientsFormatted,
+      ingredients_markdown: merged.ingredients_markdown || ingredientsFormatted.map((line) => `- ${line}`).join('\n'),
+      instructions: merged.instructions || '',
+    };
+  }
+
+  _formatIngredients(ingredientsV2, fallback) {
+    if (Array.isArray(ingredientsV2) && ingredientsV2.length) {
+      const formatted = ingredientsV2.map((item) => {
+        if (!item || typeof item !== 'object') return '';
+        return [item.amount, item.unit, item.name].filter((part) => part !== undefined && part !== null && part !== '').join(' ').trim();
+      }).filter(Boolean);
+      if (formatted.length) return formatted;
+    }
+
+    if (Array.isArray(fallback)) return fallback.filter(Boolean).map((item) => String(item));
+    return [];
+  }
+
   _weekMenuState() {
     const configured = this._state(this.config.weekmenu_entity);
     if (this._hasWeekMenuData(configured)) return { entityId: this.config.weekmenu_entity, state: configured };
@@ -262,7 +320,7 @@ class DinnerGenieCard extends HTMLElement {
 
   _recipeFromWeekMenuItem(item, index, entityId) {
     if (!item || typeof item !== 'object') return null;
-    const recipe = item.recipe && typeof item.recipe === 'object' ? item.recipe : item;
+    const recipe = this._normalizedRecipe(item.recipe && typeof item.recipe === 'object' ? item.recipe : item);
     const day = item.day || item.dayNumber || item.day_number || item.dayIndex || item.day_index || index + 1;
     const date = item.date || item.plannedDate || item.planned_date || recipe.planning_date;
     const weekday = item.weekday || item.dayName || item.day_name || recipe.planning_weekday;
@@ -309,11 +367,15 @@ class DinnerGenieCard extends HTMLElement {
     return names.filter(Boolean).map((name, index) => ({ day: index + 1, name }));
   }
 
-  _allRecipes() {
+  _rawRecipes() {
     if (this.config?.preview) return [this._previewRecipe('preview_recipe')];
     const state = this._state(this.config.recipes_entity);
     const recipes = state?.attributes?.recipes;
     return Array.isArray(recipes) ? recipes : [];
+  }
+
+  _allRecipes() {
+    return this._rawRecipes().map((recipe) => this._normalizedRecipe(recipe));
   }
 
   _previewRecipe(entityId) {
@@ -348,7 +410,7 @@ class DinnerGenieCard extends HTMLElement {
   }
 
   _image(recipe) {
-    return recipe?.display_image || recipe?.image_url || '/api/dinner_genie/assets/savelio_placeholder_recipe.png';
+    return recipe?.display_image || recipe?.image_url || recipe?.imageUrl || recipe?.displayImage || '/api/dinner_genie/assets/savelio_placeholder_recipe.png';
   }
 
   _recipeTitle(recipe) {
@@ -356,7 +418,7 @@ class DinnerGenieCard extends HTMLElement {
   }
 
   _ingredientsHtml(recipe) {
-    const ingredients = recipe?.ingredients_formatted;
+    const ingredients = recipe?.ingredients_formatted || this._formatIngredients(recipe?.ingredients_v2 || recipe?.ingredientsV2, recipe?.ingredients);
     if (Array.isArray(ingredients) && ingredients.length) {
       return `<ul>${ingredients.map((line) => `<li>${this._escape(line)}</li>`).join('')}</ul>`;
     }
@@ -394,8 +456,9 @@ class DinnerGenieCard extends HTMLElement {
 
   _renderMealCard(recipe, day, color) {
     const title = this._escape(this._recipeTitle(recipe));
-    const prep = this._escape(recipe?.prep_time || '');
-    const diet = this._escape(recipe?.diet_type || 'geen dieet');
+    const prep = this._escape(recipe?.prep_time || recipe?.prepTime || '');
+    const dietType = recipe?.diet_type || recipe?.dietType || '';
+    const diet = this._escape(dietType || 'geen dieet');
     const category = this._escape(recipe?.category || '');
     const categoryHtml = category ? `🏷️ ${category}` : '&nbsp;';
     const dayLabel = this._escape(this._dayLabel(recipe, day));
@@ -407,7 +470,7 @@ class DinnerGenieCard extends HTMLElement {
         <img src="${this._escape(this._image(recipe))}" alt="" class="recipe-image" loading="lazy">
         <div class="dg-card-body">
           <h3>${title}</h3>
-          <div class="meta">⏱ ${prep} <span>${this._dietIcon(recipe?.diet_type)} ${diet}</span></div>
+          <div class="meta">⏱ ${prep} <span>${this._dietIcon(dietType)} ${diet}</span></div>
           <div class="meta category-meta">${categoryHtml}</div>
           <button class="detail-button" data-action="details" data-entity="${this._escape(recipe?.entity_id || '')}" data-recipe-id="${this._escape(recipe?.recipe_id || recipe?.id || '')}">Details bekijken</button>
         </div>
@@ -563,7 +626,7 @@ class DinnerGenieCard extends HTMLElement {
           <button class="close" data-action="close">×</button>
           <img src="${this._escape(this._image(recipe))}" alt="" class="dialog-image">
           <h2>${this._escape(this._recipeTitle(recipe))}</h2>
-          <div class="dialog-meta">⏱ ${this._escape(recipe.prep_time || '')} &nbsp; ${this._dietIcon(recipe.diet_type)} ${this._escape(recipe.diet_type || 'geen dieet')} ${recipe.category ? `&nbsp; 🏷️ ${this._escape(recipe.category)}` : ''}</div>
+          <div class="dialog-meta">⏱ ${this._escape(recipe.prep_time || recipe.prepTime || '')} &nbsp; ${this._dietIcon(recipe.diet_type || recipe.dietType)} ${this._escape(recipe.diet_type || recipe.dietType || 'geen dieet')} ${recipe.category ? `&nbsp; 🏷️ ${this._escape(recipe.category)}` : ''}</div>
           ${recipe.description ? `<p class="description">${this._escape(recipe.description)}</p>` : ''}
           <h3>Ingrediënten</h3>
           ${this._ingredientsHtml(recipe)}
@@ -638,7 +701,9 @@ class DinnerGenieCard extends HTMLElement {
         event.stopPropagation();
         const entityId = button.getAttribute('data-entity');
         const recipeId = button.getAttribute('data-recipe-id');
-        const recipe = entityId ? this._recipeFromEntity(entityId) : this._allRecipes().find((item) => String(item.recipe_id || item.id) === recipeId);
+        const recipe = recipeId
+          ? this._weekRecipes(7).map((item) => item.recipe).find((item) => this._recipeId(item) === recipeId) || this._allRecipes().find((item) => this._recipeId(item) === recipeId)
+          : this._recipeFromEntity(entityId);
         this._openRecipe(recipe);
       });
     });
@@ -796,7 +861,7 @@ if (!customElements.get(SAVELIO_CARD_TAG)) {
   customElements.define(SAVELIO_CARD_TAG, SavelioCard);
 }
 if (!customElements.get(SAVELIO_CARD_VERSIONED_TAG)) {
-  customElements.define(SAVELIO_CARD_VERSIONED_TAG, class SavelioCardV3011 extends SavelioCard {});
+  customElements.define(SAVELIO_CARD_VERSIONED_TAG, class SavelioCardV3012 extends SavelioCard {});
 }
 
 const isLegacyDinnerGeniePickerCard = (card) => {

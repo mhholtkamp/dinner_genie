@@ -110,13 +110,13 @@ Type: JavaScript module.
 Als Home Assistant een oude versie blijft laden, voeg tijdelijk een versie-query toe, bijvoorbeeld:
 
 ```text
-/api/dinner_genie/www/dinner-genie-card.js?v=3.0.11
+/api/dinner_genie/www/dinner-genie-card.js?v=3.0.12
 ```
 
 Gebruik voor nieuwe dashboards de v2-kaart. Die omzeilt oude frontend-registraties van eerdere card-versies:
 
 ```yaml
-type: custom:savelio-card-v3011
+type: custom:savelio-card-v3012
 mode: week
 title: Savelio weekplanning
 days_entity: number.dinner_genie_aantal_dagen
@@ -128,7 +128,7 @@ weekmenu_entity: sensor.dinner_genie_weekmenu
 Voorbeeld weekmenu:
 
 ```yaml
-type: custom:savelio-card-v3011
+type: custom:savelio-card-v3012
 mode: week
 title: Savelio weekplanning
 days_entity: number.dinner_genie_aantal_dagen
@@ -139,7 +139,7 @@ days_entity: number.dinner_genie_aantal_dagen
 Voorbeeld zonder kaarttitel:
 
 ```yaml
-type: custom:savelio-card-v3011
+type: custom:savelio-card-v3012
 mode: week
 title: ""
 days_entity: number.dinner_genie_aantal_dagen
@@ -148,7 +148,7 @@ days_entity: number.dinner_genie_aantal_dagen
 Voorbeeld gerecht van vandaag:
 
 ```yaml
-type: custom:savelio-card-v3011
+type: custom:savelio-card-v3012
 mode: today
 title: Vandaag
 days_entity: number.dinner_genie_aantal_dagen
@@ -159,7 +159,7 @@ days_entity: number.dinner_genie_aantal_dagen
 Voorbeeld receptenoverzicht:
 
 ```yaml
-type: custom:savelio-card-v3011
+type: custom:savelio-card-v3012
 mode: recipes
 title: 📖 Recepten
 recipes_entity: sensor.dinner_genie_recepten

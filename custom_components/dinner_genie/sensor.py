@@ -87,7 +87,7 @@ def _recipe_attributes(recipe: dict[str, Any] | None) -> dict[str, Any]:
     image_url = recipe.get("imageUrl") or recipe.get("image_url") or recipe.get("displayImage") or recipe.get("display_image") or PLACEHOLDER_IMAGE_URL
 
     return {
-        "recipe_id": recipe.get("id") or recipe.get("recipe_id"),
+        "recipe_id": recipe.get("id") or recipe.get("recipe_id") or recipe.get("recipeId"),
         "name": recipe.get("name"),
         "description": recipe.get("description"),
         "image_url": image_url,
@@ -122,6 +122,30 @@ def _recipes_for_dashboard(recipes: Any) -> list[dict[str, Any]]:
             continue
         result.append(_recipe_attributes(recipe))
     return result
+
+
+def _day_entry_for_dashboard(entry: Any) -> dict[str, Any] | None:
+    if not isinstance(entry, dict):
+        return None
+
+    recipe = _recipe_attributes(entry.get("recipe"))
+    day = entry.get("day") or recipe.get("planning_day")
+    date = entry.get("date") or recipe.get("planning_date")
+    weekday = entry.get("weekday") or recipe.get("planning_weekday")
+    label = entry.get("label") or recipe.get("planning_label")
+
+    recipe["planning_day"] = day
+    recipe["planning_date"] = date
+    recipe["planning_weekday"] = weekday
+    recipe["planning_label"] = label
+
+    return {
+        "day": day,
+        "date": date,
+        "weekday": weekday,
+        "label": label,
+        "recipe": recipe,
+    }
 
 class DinnerGenieRecipeCountSensor(DinnerGenieBaseSensor):
     _attr_name = "Aantal recepten"
@@ -207,9 +231,15 @@ class DinnerGenieWeekMenuSensor(DinnerGenieBaseSensor):
         data = self.coordinator.data or {}
         meals = data.get("meals") or []
         day_entries = data.get("day_entries") or []
+        dashboard_days = [
+            item
+            for item in (_day_entry_for_dashboard(entry) for entry in day_entries)
+            if item
+        ]
+        dashboard_meals = _recipes_for_dashboard(meals)
         return {
-            "meals": meals,
-            "days": day_entries,
-            "meal_names": [meal.get("name") for meal in meals if isinstance(meal, dict)],
+            "meals": dashboard_meals,
+            "days": dashboard_days,
+            "meal_names": [meal.get("name") for meal in dashboard_meals if isinstance(meal, dict)],
             "shopping_lines": data.get("shopping_lines") or [],
         }

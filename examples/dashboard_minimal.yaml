@@ -8,7 +8,7 @@ views:
         entities:
           - button.dinner_genie_kies_willekeurig_gerecht
 
-      - type: custom:savelio-card-v3011
+      - type: custom:savelio-card-v3012
         mode: week
         title: Weekplanning
         days_entity: number.dinner_genie_aantal_dagen

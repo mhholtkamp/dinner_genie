@@ -1,3 +1,10 @@
+## 3.0.12
+
+- Verrijkt weekmenu-items in de card met volledige receptdetails uit `sensor.dinner_genie_recepten` op basis van recept-id.
+- Normaliseert `imageUrl`, `prepTime`, `dietType` en `ingredientsV2` voor weekmenu- en vandaagkaarten.
+- Geeft `sensor.dinner_genie_weekmenu` geformatteerde `days` en `meals` attributes met afbeeldingen, ingrediÃ«nten en beschrijving.
+- Introduceert `custom:savelio-card-v3012` om oude frontend-registraties te omzeilen.
+
 ## 3.0.11
 
 - Voorkomt lege weekmenu-kaarten als de geconfigureerde weekmenu-sensor wel bestaat maar geen bruikbare items bevat.
