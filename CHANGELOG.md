@@ -1,3 +1,10 @@
+## 3.0.10
+
+- Maakt de Savelio card robuuster na het verwijderen van de dagsensoren.
+- De card zoekt de weekmenu-sensor nu automatisch als `sensor.dinner_genie_weekmenu` niet bestaat.
+- Ondersteunt handmatige override via `weekmenu_entity`.
+- Introduceert `custom:savelio-card-v3010` om oude browser-registraties te omzeilen.
+
 ## 3.0.9
 
 - Voegt een knop toe om de Savelio boodschappenregels naar de officiele Home Assistant shopping list te sturen.
