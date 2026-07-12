@@ -62,9 +62,27 @@ def _async_remove_legacy_day_entities(hass: HomeAssistant, entry: ConfigEntry) -
             registry.async_remove(entity.entity_id)
 
 
+def _async_migrate_shopping_export_button(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Keep the shopping export button on the documented entity id."""
+    registry = er.async_get(hass)
+    unique_id = f"{entry.entry_id}_send_shopping_to_ha_list"
+    desired_entity_id = "button.dinner_genie_stuur_boodschappen_naar_ha_lijst"
+    current_entity_id = registry.async_get_entity_id("button", DOMAIN, unique_id)
+
+    if not current_entity_id or current_entity_id == desired_entity_id:
+        return
+
+    existing = registry.async_get(desired_entity_id)
+    if existing and existing.unique_id != unique_id:
+        registry.async_remove(desired_entity_id)
+
+    registry.async_update_entity(current_entity_id, new_entity_id=desired_entity_id)
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await _async_register_static_assets(hass)
     _async_remove_legacy_day_entities(hass, entry)
+    _async_migrate_shopping_export_button(hass, entry)
     session = async_get_clientsession(hass)
     client = DinnerGenieClient(
         session,

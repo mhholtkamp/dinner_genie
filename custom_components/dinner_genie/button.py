@@ -9,6 +9,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .const import DOMAIN
 
 OFFICIAL_SHOPPING_LIST_ENTITY = "todo.shopping_list"
+SEND_SHOPPING_ENTITY_ID = "button.dinner_genie_stuur_boodschappen_naar_ha_lijst"
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
@@ -63,6 +64,7 @@ class DinnerGenieSendShoppingListButton(DinnerGenieBaseButton):
     def __init__(self, coordinator) -> None:
         super().__init__(coordinator)
         self._attr_unique_id = f"{coordinator.entry.entry_id}_send_shopping_to_ha_list"
+        self._attr_entity_id = SEND_SHOPPING_ENTITY_ID
 
     @property
     def available(self) -> bool:

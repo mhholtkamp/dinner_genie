@@ -1,3 +1,8 @@
+## 3.0.13
+
+- Zet de boodschappen-exportknop vast op `button.dinner_genie_stuur_boodschappen_naar_ha_lijst`.
+- Migreert een eerder door Home Assistant anders benoemde Savelio exportknop terug naar de gedocumenteerde entity-id.
+
 ## 3.0.12
 
 - Verrijkt weekmenu-items in de card met volledige receptdetails uit `sensor.dinner_genie_recepten` op basis van recept-id.
