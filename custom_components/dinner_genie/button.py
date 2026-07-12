@@ -68,8 +68,7 @@ class DinnerGenieSendShoppingListButton(DinnerGenieBaseButton):
 
     @property
     def available(self) -> bool:
-        lines = (self.coordinator.data or {}).get("shopping_lines") or []
-        return bool(lines) and OFFICIAL_SHOPPING_LIST_ENTITY in self.coordinator.hass.states
+        return True
 
     async def async_press(self) -> None:
         lines = [

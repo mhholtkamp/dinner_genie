@@ -110,7 +110,7 @@ Type: JavaScript module.
 Als Home Assistant een oude versie blijft laden, voeg tijdelijk een versie-query toe, bijvoorbeeld:
 
 ```text
-/api/dinner_genie/www/dinner-genie-card.js?v=3.0.13
+/api/dinner_genie/www/dinner-genie-card.js?v=3.0.14
 ```
 
 Gebruik voor nieuwe dashboards de v2-kaart. Die omzeilt oude frontend-registraties van eerdere card-versies:

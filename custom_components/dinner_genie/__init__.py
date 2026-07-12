@@ -62,27 +62,33 @@ def _async_remove_legacy_day_entities(hass: HomeAssistant, entry: ConfigEntry) -
             registry.async_remove(entity.entity_id)
 
 
-def _async_migrate_shopping_export_button(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Keep the shopping export button on the documented entity id."""
+def _async_reset_shopping_export_button(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Remove stale shopping export registry entries so the button can be recreated."""
     registry = er.async_get(hass)
-    unique_id = f"{entry.entry_id}_send_shopping_to_ha_list"
-    desired_entity_id = "button.dinner_genie_stuur_boodschappen_naar_ha_lijst"
-    current_entity_id = registry.async_get_entity_id("button", DOMAIN, unique_id)
+    known_unique_ids = {
+        f"{entry.entry_id}_send_shopping_to_ha_list",
+        f"{entry.entry_id}_shopping_export_to_ha_list",
+    }
+    known_entity_ids = {
+        "button.dinner_genie_stuur_boodschappen_naar_ha_lijst",
+        "button.savelio_stuur_boodschappen_naar_ha_lijst",
+        "button.dinner_genie_send_shopping_to_ha_list",
+        "button.savelio_send_shopping_to_ha_list",
+    }
 
-    if not current_entity_id or current_entity_id == desired_entity_id:
-        return
-
-    existing = registry.async_get(desired_entity_id)
-    if existing and existing.unique_id != unique_id:
-        registry.async_remove(desired_entity_id)
-
-    registry.async_update_entity(current_entity_id, new_entity_id=desired_entity_id)
+    for entity in list(registry.entities.values()):
+        if not entity.entity_id.startswith("button."):
+            continue
+        if entity.config_entry_id not in (None, entry.entry_id):
+            continue
+        if entity.unique_id in known_unique_ids or entity.entity_id in known_entity_ids:
+            registry.async_remove(entity.entity_id)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await _async_register_static_assets(hass)
     _async_remove_legacy_day_entities(hass, entry)
-    _async_migrate_shopping_export_button(hass, entry)
+    _async_reset_shopping_export_button(hass, entry)
     session = async_get_clientsession(hass)
     client = DinnerGenieClient(
         session,

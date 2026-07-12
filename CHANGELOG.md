@@ -1,3 +1,8 @@
+## 3.0.14
+
+- Verwijdert stale/orphan registry entries voor de boodschappen-exportknop voordat de knop opnieuw wordt aangemaakt.
+- Houdt de exportknop beschikbaar en toont pas bij klikken een duidelijke fout als er geen boodschappen of geen `todo.shopping_list` is.
+
 ## 3.0.13
 
 - Zet de boodschappen-exportknop vast op `button.dinner_genie_stuur_boodschappen_naar_ha_lijst`.
