@@ -29,6 +29,7 @@ De integratie maakt automatisch deze entiteiten aan:
 - `button.dinner_genie_genereer_weekmenu` haalt de actuele Savelio weekplanning opnieuw op
 - `button.dinner_genie_kies_willekeurig_gerecht`
 - `button.dinner_genie_stuur_boodschappen_naar_ha_lijst`
+- `button.dinner_genie_leeg_savelio_boodschappenlijst`
 - `sensor.dinner_genie_aantal_recepten`
 - `sensor.dinner_genie_willekeurig_gerecht`
 - `sensor.dinner_genie_weekmenu`
@@ -41,6 +42,8 @@ De integratie maakt automatisch deze entiteiten aan:
 De weekplanning wordt in de Savelio webinterface gemaakt. Home Assistant haalt de actuele planning op via de API.
 
 Gebruik **Stuur boodschappen naar HA lijst** om de Savelio boodschappenregels toe te voegen aan de officiele Home Assistant shopping list (`todo.shopping_list`).
+
+Gebruik **Leeg Savelio boodschappenlijst** om de lokale Savelio boodschappenlijst leeg te maken. Voeg in Lovelace een `confirmation` toe als je eerst een ja/nee-vraag wilt tonen.
 
 De integratie roept dan aan:
 
@@ -110,13 +113,13 @@ Type: JavaScript module.
 Als Home Assistant een oude versie blijft laden, voeg tijdelijk een versie-query toe, bijvoorbeeld:
 
 ```text
-/api/dinner_genie/www/dinner-genie-card.js?v=3.0.17
+/api/dinner_genie/www/dinner-genie-card.js?v=3.0.18
 ```
 
 Gebruik voor nieuwe dashboards de v2-kaart. Die omzeilt oude frontend-registraties van eerdere card-versies:
 
 ```yaml
-type: custom:savelio-card-v3012
+type: custom:savelio-card-v3017
 mode: week
 title: Savelio weekplanning
 days_entity: number.dinner_genie_aantal_dagen
@@ -128,7 +131,7 @@ weekmenu_entity: sensor.dinner_genie_weekmenu
 Voorbeeld weekmenu:
 
 ```yaml
-type: custom:savelio-card-v3012
+type: custom:savelio-card-v3017
 mode: week
 title: Savelio weekplanning
 days_entity: number.dinner_genie_aantal_dagen
@@ -139,7 +142,7 @@ days_entity: number.dinner_genie_aantal_dagen
 Voorbeeld zonder kaarttitel:
 
 ```yaml
-type: custom:savelio-card-v3012
+type: custom:savelio-card-v3017
 mode: week
 title: ""
 days_entity: number.dinner_genie_aantal_dagen
@@ -148,7 +151,7 @@ days_entity: number.dinner_genie_aantal_dagen
 Voorbeeld gerecht van vandaag:
 
 ```yaml
-type: custom:savelio-card-v3012
+type: custom:savelio-card-v3017
 mode: today
 title: Vandaag
 days_entity: number.dinner_genie_aantal_dagen
@@ -159,7 +162,7 @@ days_entity: number.dinner_genie_aantal_dagen
 Voorbeeld receptenoverzicht:
 
 ```yaml
-type: custom:savelio-card-v3012
+type: custom:savelio-card-v3017
 mode: recipes
 title: 📖 Recepten
 recipes_entity: sensor.dinner_genie_recepten

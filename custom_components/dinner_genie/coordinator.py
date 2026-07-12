@@ -67,6 +67,7 @@ class DinnerGenieCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         old = self.data or {}
         week_planning = self._latest_week_menu_payload(week_menus_response)
+        week_menu_key = self._week_menu_key(week_planning)
         day_entries = self._day_entries_from_week_planning(week_planning)
         self._enrich_day_entries(day_entries, recipes)
         meals = [entry["recipe"] for entry in day_entries if isinstance(entry.get("recipe"), dict)]
@@ -75,14 +76,17 @@ class DinnerGenieCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             for entry in day_entries
             if not entry.get("is_past") and isinstance(entry.get("recipe"), dict)
         ]
-        shopping_lines = self._build_shopping_lines(active_meals)
+        shopping_cleared_for = old.get("shopping_cleared_for")
+        shopping_lines = [] if shopping_cleared_for == week_menu_key else self._build_shopping_lines(active_meals)
         return {
             "recipes": recipes,
             "random": old.get("random"),
             "week_plan": week_planning,
+            "week_menu_key": week_menu_key,
             "day_entries": day_entries,
             "meals": meals,
             "shopping_lines": shopping_lines,
+            "shopping_cleared_for": shopping_cleared_for if shopping_cleared_for == week_menu_key else None,
             "shopping_items": self._todo_items_from_lines(
                 shopping_lines,
                 previous_items=old.get("shopping_items") or [],
@@ -100,6 +104,13 @@ class DinnerGenieCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         data = dict(self.data or {})
         data["random"] = random_recipe
+        self.async_set_updated_data(data)
+
+    async def async_clear_shopping_list(self) -> None:
+        data = dict(self.data or {})
+        data["shopping_lines"] = []
+        data["shopping_items"] = []
+        data["shopping_cleared_for"] = data.get("week_menu_key") or self._week_menu_key(data.get("week_plan") or {})
         self.async_set_updated_data(data)
 
     async def async_update_option(self, key: str, value: Any) -> None:
@@ -144,6 +155,21 @@ class DinnerGenieCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if isinstance(value, dict):
                 return value
         return response
+
+    @staticmethod
+    def _week_menu_key(week_planning: dict[str, Any]) -> str:
+        for key in ("id", "weekMenuId", "week_menu_id", "week_menuId"):
+            value = week_planning.get(key)
+            if value not in (None, ""):
+                return str(value)
+
+        parts = [
+            week_planning.get("created_at") or week_planning.get("createdAt"),
+            week_planning.get("startDate") or week_planning.get("start_date"),
+            week_planning.get("days"),
+        ]
+        fallback = "|".join(str(part) for part in parts if part not in (None, ""))
+        return fallback or "current"
 
     def _day_entries_from_week_planning(self, week_planning: dict[str, Any]) -> list[dict[str, Any]]:
         raw_days = self._first_list(

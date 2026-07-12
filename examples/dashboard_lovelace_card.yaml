@@ -8,12 +8,12 @@ views:
       - type: grid
         column_span: 3
         cards:
-          - type: custom:savelio-card-v3012
+          - type: custom:savelio-card-v3017
             mode: week
             title: Savelio weekplanning
             days_entity: number.dinner_genie_aantal_dagen
             max_days: 7
-          - type: custom:savelio-card-v3012
+          - type: custom:savelio-card-v3017
             mode: today
             title: Vandaag
             days_entity: number.dinner_genie_aantal_dagen
@@ -27,7 +27,7 @@ views:
       - type: grid
         column_span: 3
         cards:
-          - type: custom:savelio-card-v3012
+          - type: custom:savelio-card-v3017
             mode: recipes
             title: 📖 Recepten
             recipes_entity: sensor.dinner_genie_recepten
@@ -46,3 +46,12 @@ views:
             title: Boodschappen
           - type: button
             entity: button.dinner_genie_stuur_boodschappen_naar_ha_lijst
+          - type: button
+            entity: button.dinner_genie_leeg_savelio_boodschappenlijst
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.dinner_genie_leeg_savelio_boodschappenlijst
+              confirmation:
+                text: Wil je de Savelio boodschappenlijst legen?

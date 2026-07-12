@@ -1,3 +1,9 @@
+## 3.0.18
+
+- Voegt een knop **Leeg Savelio boodschappenlijst** toe.
+- Houdt de Savelio boodschappenlijst leeg voor hetzelfde weekmenu nadat deze handmatig is geleegd.
+- Werkt dashboardvoorbeelden bij met een bevestigingsvraag voor het legen van de Savelio boodschappenlijst.
+
 ## 3.0.17
 
 - Markeert verlopen dagen in het weekoverzicht als grijs/disabled terwijl ze zichtbaar blijven.

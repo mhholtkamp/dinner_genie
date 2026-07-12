@@ -8,7 +8,7 @@ views:
         entities:
           - button.dinner_genie_kies_willekeurig_gerecht
 
-      - type: custom:savelio-card-v3012
+      - type: custom:savelio-card-v3017
         mode: week
         title: Weekplanning
         days_entity: number.dinner_genie_aantal_dagen
@@ -16,5 +16,14 @@ views:
       - type: todo-list
         entity: todo.dinner_genie_boodschappen
         title: Boodschappen
-      - type: button
-        entity: button.dinner_genie_stuur_boodschappen_naar_ha_lijst
+  - type: button
+    entity: button.dinner_genie_stuur_boodschappen_naar_ha_lijst
+  - type: button
+    entity: button.dinner_genie_leeg_savelio_boodschappenlijst
+    tap_action:
+      action: call-service
+      service: button.press
+      target:
+        entity_id: button.dinner_genie_leeg_savelio_boodschappenlijst
+      confirmation:
+        text: Wil je de Savelio boodschappenlijst legen?

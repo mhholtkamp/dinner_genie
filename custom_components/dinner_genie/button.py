@@ -10,6 +10,7 @@ from .const import DOMAIN
 
 OFFICIAL_SHOPPING_LIST_ENTITY = "todo.shopping_list"
 SEND_SHOPPING_ENTITY_ID = "button.dinner_genie_stuur_boodschappen_naar_ha_lijst"
+CLEAR_SHOPPING_ENTITY_ID = "button.dinner_genie_leeg_savelio_boodschappenlijst"
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
@@ -19,6 +20,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         DinnerGenieGenerateWeekMenuButton(coordinator),
         DinnerGenieRandomButton(coordinator),
         DinnerGenieSendShoppingListButton(coordinator),
+        DinnerGenieClearShoppingListButton(coordinator),
     ]
     async_add_entities(entities)
 
@@ -105,3 +107,20 @@ class DinnerGenieSendShoppingListButton(DinnerGenieBaseButton):
                 },
                 blocking=True,
             )
+
+
+class DinnerGenieClearShoppingListButton(DinnerGenieBaseButton):
+    _attr_name = "Leeg Savelio boodschappenlijst"
+    _attr_icon = "mdi:cart-remove"
+
+    def __init__(self, coordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{coordinator.entry.entry_id}_clear_shopping_list"
+        self._attr_entity_id = CLEAR_SHOPPING_ENTITY_ID
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    async def async_press(self) -> None:
+        await self.coordinator.async_clear_shopping_list()
