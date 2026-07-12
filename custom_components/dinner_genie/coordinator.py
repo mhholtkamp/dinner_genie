@@ -11,16 +11,33 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import DinnerGenieApiError, DinnerGenieClient
-from .const import DOMAIN, OPT_DAYS, OPT_DIET_TYPE, OPT_RECIPE_TYPE, OPT_SERVINGS
+from .const import (
+    DEFAULT_REFRESH_INTERVAL_HOURS,
+    DOMAIN,
+    OPT_DAYS,
+    OPT_DIET_TYPE,
+    OPT_RECIPE_TYPE,
+    OPT_REFRESH_INTERVAL_HOURS,
+    OPT_SERVINGS,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class DinnerGenieCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry, client: DinnerGenieClient) -> None:
-        super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=timedelta(hours=6))
+        super().__init__(
+            hass,
+            _LOGGER,
+            name=DOMAIN,
+            update_interval=timedelta(hours=self.refresh_interval_hours(entry)),
+        )
         self.entry = entry
         self.client = client
+
+    @staticmethod
+    def refresh_interval_hours(entry: ConfigEntry) -> int:
+        return int(entry.options.get(OPT_REFRESH_INTERVAL_HOURS, DEFAULT_REFRESH_INTERVAL_HOURS))
 
     @property
     def days(self) -> int:

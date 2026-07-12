@@ -14,13 +14,16 @@ OPT_DAYS = "days"
 OPT_SERVINGS = "servings"
 OPT_DIET_TYPE = "diet_type"
 OPT_RECIPE_TYPE = "recipe_type"
+OPT_REFRESH_INTERVAL_HOURS = "refresh_interval_hours"
 
 DEFAULT_DAYS = 5
 DEFAULT_SERVINGS = 4
+DEFAULT_REFRESH_INTERVAL_HOURS = 6
 MIN_DAYS = 1
 MAX_DAYS = 7
 MIN_SERVINGS = 1
 MAX_SERVINGS = 50
+REFRESH_INTERVAL_OPTIONS = [1, 3, 6]
 
 DIET_OPTIONS = ["all", "vegetarian", "vegan"]
 RECIPE_TYPE_OPTIONS = ["dinner", "breakfast", "baking", "lunch", "snack", "other"]

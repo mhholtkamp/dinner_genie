@@ -15,6 +15,7 @@ SEND_SHOPPING_ENTITY_ID = "button.dinner_genie_stuur_boodschappen_naar_ha_lijst"
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
     coordinator = hass.data[DOMAIN][entry.entry_id]
     entities: list[ButtonEntity] = [
+        DinnerGenieRefreshDataButton(coordinator),
         DinnerGenieGenerateWeekMenuButton(coordinator),
         DinnerGenieRandomButton(coordinator),
         DinnerGenieSendShoppingListButton(coordinator),
@@ -31,6 +32,18 @@ class DinnerGenieBaseButton(ButtonEntity):
     @property
     def device_info(self):
         return {"identifiers": {(DOMAIN, self.coordinator.entry.entry_id)}, "name": "Savelio"}
+
+
+class DinnerGenieRefreshDataButton(DinnerGenieBaseButton):
+    _attr_name = "Update gegevens"
+    _attr_icon = "mdi:cloud-refresh"
+
+    def __init__(self, coordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{coordinator.entry.entry_id}_refresh_data"
+
+    async def async_press(self) -> None:
+        await self.coordinator.async_request_refresh()
 
 
 class DinnerGenieGenerateWeekMenuButton(DinnerGenieBaseButton):

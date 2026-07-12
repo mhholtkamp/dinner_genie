@@ -18,5 +18,16 @@
     "abort": {
       "already_configured": "Savelio is already configured"
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Savelio options",
+        "description": "Choose how often Savelio automatically fetches recipes and the week menu.",
+        "data": {
+          "refresh_interval_hours": "Automatically update every"
+        }
+      }
+    }
   }
 }

@@ -1,3 +1,8 @@
+## 3.0.15
+
+- Maakt de automatische update-interval instelbaar op 1, 3 of 6 uur via de integratie-opties.
+- Voegt een knop **Update gegevens** toe om recepten, weekmenu en boodschappen direct opnieuw op te halen.
+
 ## 3.0.14
 
 - Verwijdert stale/orphan registry entries voor de boodschappen-exportknop voordat de knop opnieuw wordt aangemaakt.
