@@ -1,3 +1,9 @@
+## 3.0.20
+
+- Voegt de service `dinner_genie.send_shopping_to_ha_and_clear` toe voor dashboardknoppen zonder entity-id.
+- Werkt dashboardvoorbeelden bij zodat **Entiteit niet gevonden** wordt voorkomen.
+- Verplaatst de boodschappen-exportlogica naar de coordinator zodat knoppen en services hetzelfde gedrag gebruiken.
+
 ## 3.0.19
 
 - Voegt een knop **Stuur boodschappen naar HA en leeg Savelio** toe.

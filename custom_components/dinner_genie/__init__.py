@@ -5,7 +5,8 @@ from pathlib import Path
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_API_KEY
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers import entity_registry as er
 
@@ -23,6 +24,8 @@ from .const import (
     PLATFORMS,
 )
 from .coordinator import DinnerGenieCoordinator
+
+SERVICE_SEND_SHOPPING_TO_HA_AND_CLEAR = "send_shopping_to_ha_and_clear"
 
 
 async def _async_register_static_assets(hass: HomeAssistant) -> None:
@@ -106,6 +109,43 @@ def _async_reset_shopping_buttons(hass: HomeAssistant, entry: ConfigEntry) -> No
             registry.async_remove(entity.entity_id)
 
 
+def _coordinator_for_service(hass: HomeAssistant, call: ServiceCall) -> DinnerGenieCoordinator:
+    coordinators = hass.data.get(DOMAIN, {})
+    entry_id = call.data.get("entry_id")
+
+    if entry_id:
+        coordinator = coordinators.get(entry_id)
+        if coordinator:
+            return coordinator
+        raise HomeAssistantError(f"Savelio configuratie niet gevonden: {entry_id}")
+
+    if len(coordinators) == 1:
+        return next(iter(coordinators.values()))
+
+    if not coordinators:
+        raise HomeAssistantError("Geen Savelio configuratie gevonden.")
+
+    raise HomeAssistantError("Meerdere Savelio configuraties gevonden. Geef entry_id mee.")
+
+
+def _async_register_services(hass: HomeAssistant) -> None:
+    registered_key = f"{DOMAIN}_services_registered"
+    if hass.data.get(registered_key):
+        return
+
+    async def async_send_shopping_to_ha_and_clear(call: ServiceCall) -> None:
+        coordinator = _coordinator_for_service(hass, call)
+        await coordinator.async_send_shopping_to_ha()
+        await coordinator.async_clear_shopping_list()
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SEND_SHOPPING_TO_HA_AND_CLEAR,
+        async_send_shopping_to_ha_and_clear,
+    )
+    hass.data[registered_key] = True
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await _async_register_static_assets(hass)
     _async_remove_legacy_day_entities(hass, entry)
@@ -119,6 +159,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
 
     hass.data.setdefault(DOMAIN, {})
+    _async_register_services(hass)
     coordinator = DinnerGenieCoordinator(hass, entry, client)
     hass.data[DOMAIN][entry.entry_id] = coordinator
 

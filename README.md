@@ -48,6 +48,19 @@ Gebruik **Leeg Savelio boodschappenlijst** om de lokale Savelio boodschappenlijs
 
 Gebruik **Stuur boodschappen naar HA en leeg Savelio** als je in een keer de boodschappen naar `todo.shopping_list` wilt sturen en daarna de Savelio boodschappenlijst wilt legen. Dit is de aanbevolen knop voor dashboards.
 
+Voor dashboards kun je deze service gebruiken zonder `entity`, zodat Home Assistant geen entity-id hoeft te vinden:
+
+```yaml
+type: button
+name: Stuur naar HA en leeg Savelio
+icon: mdi:cart-check
+tap_action:
+  action: call-service
+  service: dinner_genie.send_shopping_to_ha_and_clear
+  confirmation:
+    text: Wil je de boodschappen naar Home Assistant sturen en daarna de Savelio boodschappenlijst legen?
+```
+
 De integratie roept dan aan:
 
 ```text
@@ -116,7 +129,7 @@ Type: JavaScript module.
 Als Home Assistant een oude versie blijft laden, voeg tijdelijk een versie-query toe, bijvoorbeeld:
 
 ```text
-/api/dinner_genie/www/dinner-genie-card.js?v=3.0.19
+/api/dinner_genie/www/dinner-genie-card.js?v=3.0.20
 ```
 
 Gebruik voor nieuwe dashboards de v2-kaart. Die omzeilt oude frontend-registraties van eerdere card-versies:

@@ -1,0 +1,10 @@
+send_shopping_to_ha_and_clear:
+  name: Stuur boodschappen naar HA en leeg Savelio
+  description: Stuur de Savelio boodschappen naar de officiele Home Assistant shopping list en leeg daarna de Savelio boodschappenlijst.
+  fields:
+    entry_id:
+      name: Config entry ID
+      description: Alleen nodig als meerdere Savelio configuraties actief zijn.
+      required: false
+      selector:
+        text:

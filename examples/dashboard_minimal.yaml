@@ -17,11 +17,10 @@ views:
         entity: todo.dinner_genie_boodschappen
         title: Boodschappen
   - type: button
-    entity: button.dinner_genie_stuur_boodschappen_naar_ha_en_leeg_savelio
+    name: Stuur naar HA en leeg Savelio
+    icon: mdi:cart-check
     tap_action:
       action: call-service
-      service: button.press
-      target:
-        entity_id: button.dinner_genie_stuur_boodschappen_naar_ha_en_leeg_savelio
+      service: dinner_genie.send_shopping_to_ha_and_clear
       confirmation:
         text: Wil je de boodschappen naar Home Assistant sturen en daarna de Savelio boodschappenlijst legen?

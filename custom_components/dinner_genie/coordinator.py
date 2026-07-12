@@ -8,6 +8,7 @@ from uuid import uuid4
 from homeassistant.components.todo import TodoItemStatus
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
 
@@ -23,6 +24,7 @@ from .const import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+OFFICIAL_SHOPPING_LIST_ENTITY = "todo.shopping_list"
 
 
 class DinnerGenieCoordinator(DataUpdateCoordinator[dict[str, Any]]):
@@ -112,6 +114,29 @@ class DinnerGenieCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         data["shopping_items"] = []
         data["shopping_cleared_for"] = data.get("week_menu_key") or self._week_menu_key(data.get("week_plan") or {})
         self.async_set_updated_data(data)
+
+    async def async_send_shopping_to_ha(self) -> None:
+        lines = [
+            str(line).strip()
+            for line in (self.data or {}).get("shopping_lines") or []
+            if str(line).strip()
+        ]
+        if not lines:
+            raise HomeAssistantError("Geen Savelio boodschappen om te versturen.")
+
+        if self.hass.states.get(OFFICIAL_SHOPPING_LIST_ENTITY) is None:
+            raise HomeAssistantError("De officiele Home Assistant shopping list is niet gevonden.")
+
+        for line in lines:
+            await self.hass.services.async_call(
+                "todo",
+                "add_item",
+                {
+                    "entity_id": OFFICIAL_SHOPPING_LIST_ENTITY,
+                    "item": line,
+                },
+                blocking=True,
+            )
 
     async def async_update_option(self, key: str, value: Any) -> None:
         options = dict(self.entry.options)

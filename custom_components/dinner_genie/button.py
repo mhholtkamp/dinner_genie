@@ -3,12 +3,10 @@ from __future__ import annotations
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
 
-OFFICIAL_SHOPPING_LIST_ENTITY = "todo.shopping_list"
 SEND_SHOPPING_ENTITY_ID = "button.dinner_genie_stuur_boodschappen_naar_ha_lijst"
 CLEAR_SHOPPING_ENTITY_ID = "button.dinner_genie_leeg_savelio_boodschappenlijst"
 SEND_AND_CLEAR_SHOPPING_ENTITY_ID = "button.dinner_genie_stuur_boodschappen_naar_ha_en_leeg_savelio"
@@ -88,7 +86,7 @@ class DinnerGenieSendShoppingListButton(DinnerGenieBaseButton):
         return True
 
     async def async_press(self) -> None:
-        await async_send_shopping_lines_to_ha(self.coordinator)
+        await self.coordinator.async_send_shopping_to_ha()
 
 
 class DinnerGenieClearShoppingListButton(DinnerGenieBaseButton):
@@ -122,29 +120,5 @@ class DinnerGenieSendAndClearShoppingListButton(DinnerGenieBaseButton):
         return True
 
     async def async_press(self) -> None:
-        await async_send_shopping_lines_to_ha(self.coordinator)
+        await self.coordinator.async_send_shopping_to_ha()
         await self.coordinator.async_clear_shopping_list()
-
-
-async def async_send_shopping_lines_to_ha(coordinator) -> None:
-    lines = [
-        str(line).strip()
-        for line in (coordinator.data or {}).get("shopping_lines") or []
-        if str(line).strip()
-    ]
-    if not lines:
-        raise HomeAssistantError("Geen Savelio boodschappen om te versturen.")
-
-    if coordinator.hass.states.get(OFFICIAL_SHOPPING_LIST_ENTITY) is None:
-        raise HomeAssistantError("De officiele Home Assistant shopping list is niet gevonden.")
-
-    for line in lines:
-        await coordinator.hass.services.async_call(
-            "todo",
-            "add_item",
-            {
-                "entity_id": OFFICIAL_SHOPPING_LIST_ENTITY,
-                "item": line,
-            },
-            blocking=True,
-        )
