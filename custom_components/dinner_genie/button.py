@@ -3,9 +3,12 @@ from __future__ import annotations
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
+
+OFFICIAL_SHOPPING_LIST_ENTITY = "todo.shopping_list"
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
@@ -13,6 +16,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     entities: list[ButtonEntity] = [
         DinnerGenieGenerateWeekMenuButton(coordinator),
         DinnerGenieRandomButton(coordinator),
+        DinnerGenieSendShoppingListButton(coordinator),
     ]
     async_add_entities(entities)
 
@@ -50,3 +54,40 @@ class DinnerGenieRandomButton(DinnerGenieBaseButton):
 
     async def async_press(self) -> None:
         await self.coordinator.async_choose_random_recipe()
+
+
+class DinnerGenieSendShoppingListButton(DinnerGenieBaseButton):
+    _attr_name = "Stuur boodschappen naar HA lijst"
+    _attr_icon = "mdi:cart-arrow-right"
+
+    def __init__(self, coordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{coordinator.entry.entry_id}_send_shopping_to_ha_list"
+
+    @property
+    def available(self) -> bool:
+        lines = (self.coordinator.data or {}).get("shopping_lines") or []
+        return bool(lines) and OFFICIAL_SHOPPING_LIST_ENTITY in self.coordinator.hass.states
+
+    async def async_press(self) -> None:
+        lines = [
+            str(line).strip()
+            for line in (self.coordinator.data or {}).get("shopping_lines") or []
+            if str(line).strip()
+        ]
+        if not lines:
+            raise HomeAssistantError("Geen Savelio boodschappen om te versturen.")
+
+        if OFFICIAL_SHOPPING_LIST_ENTITY not in self.coordinator.hass.states:
+            raise HomeAssistantError("De officiele Home Assistant shopping list is niet gevonden.")
+
+        for line in lines:
+            await self.coordinator.hass.services.async_call(
+                "todo",
+                "add_item",
+                {
+                    "entity_id": OFFICIAL_SHOPPING_LIST_ENTITY,
+                    "item": line,
+                },
+                blocking=True,
+            )

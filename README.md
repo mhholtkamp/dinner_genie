@@ -28,6 +28,7 @@ De integratie maakt automatisch deze entiteiten aan:
 - `number.dinner_genie_aantal_personen`
 - `button.dinner_genie_genereer_weekmenu` haalt de actuele Savelio weekplanning opnieuw op
 - `button.dinner_genie_kies_willekeurig_gerecht`
+- `button.dinner_genie_stuur_boodschappen_naar_ha_lijst`
 - `sensor.dinner_genie_aantal_recepten`
 - `sensor.dinner_genie_willekeurig_gerecht`
 - `sensor.dinner_genie_weekmenu`
@@ -38,6 +39,8 @@ De integratie maakt automatisch deze entiteiten aan:
 ## Gebruik
 
 De weekplanning wordt in de Savelio webinterface gemaakt. Home Assistant haalt de actuele planning op via de API.
+
+Gebruik **Stuur boodschappen naar HA lijst** om de Savelio boodschappenregels toe te voegen aan de officiele Home Assistant shopping list (`todo.shopping_list`).
 
 De integratie roept dan aan:
 
@@ -107,7 +110,7 @@ Type: JavaScript module.
 Als Home Assistant een oude versie blijft laden, voeg tijdelijk een versie-query toe, bijvoorbeeld:
 
 ```text
-/api/dinner_genie/www/dinner-genie-card.js?v=3.0.8
+/api/dinner_genie/www/dinner-genie-card.js?v=3.0.9
 ```
 
 Gebruik voor nieuwe dashboards de v2-kaart. Die omzeilt oude frontend-registraties van eerdere card-versies:

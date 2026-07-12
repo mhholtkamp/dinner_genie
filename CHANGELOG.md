@@ -1,3 +1,8 @@
+## 3.0.9
+
+- Voegt een knop toe om de Savelio boodschappenregels naar de officiele Home Assistant shopping list te sturen.
+- De knop gebruikt `todo.shopping_list` via de officiele `todo.add_item` service.
+
 ## 3.0.8
 
 - Verwijdert de aparte `Dag 1` t/m `Dag 7` sensors uit de apparaat-eigenschappen.

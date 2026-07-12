@@ -44,3 +44,5 @@ views:
           - type: todo-list
             entity: todo.dinner_genie_boodschappen
             title: Boodschappen
+          - type: button
+            entity: button.dinner_genie_stuur_boodschappen_naar_ha_lijst
