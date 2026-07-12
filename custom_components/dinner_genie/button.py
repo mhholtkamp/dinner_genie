@@ -92,7 +92,7 @@ class DinnerGenieSendShoppingListButton(DinnerGenieBaseButton):
         if not lines:
             raise HomeAssistantError("Geen Savelio boodschappen om te versturen.")
 
-        if OFFICIAL_SHOPPING_LIST_ENTITY not in self.coordinator.hass.states:
+        if self.coordinator.hass.states.get(OFFICIAL_SHOPPING_LIST_ENTITY) is None:
             raise HomeAssistantError("De officiele Home Assistant shopping list is niet gevonden.")
 
         for line in lines:

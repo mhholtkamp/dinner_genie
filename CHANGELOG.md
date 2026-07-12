@@ -1,3 +1,7 @@
+## 3.0.16
+
+- Corrigeert de beschikbaarheidscheck van `todo.shopping_list` voor de knop **Stuur boodschappen naar HA lijst**.
+
 ## 3.0.15
 
 - Maakt de automatische update-interval instelbaar op 1, 3 of 6 uur via de integratie-opties.
