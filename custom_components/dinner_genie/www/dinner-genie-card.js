@@ -1,10 +1,10 @@
 
-const DINNER_GENIE_CARD_VERSION = '3.0.12';
+const DINNER_GENIE_CARD_VERSION = '3.0.17';
 const DINNER_GENIE_CARD_TAG = 'dinner-genie-card';
 const DINNER_GENIE_CARD_V2_TAG = 'dinner-genie-card-v2';
 const DINNER_GENIE_CARD_VERSIONED_TAG = 'dinner-genie-card-v239';
 const SAVELIO_CARD_TAG = 'savelio-card';
-const SAVELIO_CARD_VERSIONED_TAG = 'savelio-card-v3012';
+const SAVELIO_CARD_VERSIONED_TAG = 'savelio-card-v3017';
 
 class DinnerGenieCard extends HTMLElement {
   constructor() {
@@ -248,6 +248,7 @@ class DinnerGenieCard extends HTMLElement {
       planning_date: recipe.planning_date || fullRecipe.planning_date,
       planning_weekday: recipe.planning_weekday || fullRecipe.planning_weekday,
       planning_label: recipe.planning_label || fullRecipe.planning_label,
+      planning_is_past: recipe.planning_is_past ?? fullRecipe.planning_is_past,
     } : { ...recipe };
     const ingredientsV2 = merged.ingredients_v2 || merged.ingredientsV2 || [];
     const ingredients = merged.ingredients || [];
@@ -269,6 +270,7 @@ class DinnerGenieCard extends HTMLElement {
       ingredients_formatted: ingredientsFormatted,
       ingredients_markdown: merged.ingredients_markdown || ingredientsFormatted.map((line) => `- ${line}`).join('\n'),
       instructions: merged.instructions || '',
+      planning_is_past: Boolean(merged.planning_is_past),
     };
   }
 
@@ -325,6 +327,7 @@ class DinnerGenieCard extends HTMLElement {
     const date = item.date || item.plannedDate || item.planned_date || recipe.planning_date;
     const weekday = item.weekday || item.dayName || item.day_name || recipe.planning_weekday;
     const label = item.label || item.title || recipe.planning_label;
+    const isPast = Boolean(item.is_past || item.isPast || item.past || recipe.planning_is_past || this._isPastDate(date));
     return {
       day,
       recipe: {
@@ -335,6 +338,7 @@ class DinnerGenieCard extends HTMLElement {
         planning_date: recipe.planning_date || date,
         planning_weekday: recipe.planning_weekday || weekday,
         planning_label: recipe.planning_label || label,
+        planning_is_past: isPast,
       },
     };
   }
@@ -462,17 +466,21 @@ class DinnerGenieCard extends HTMLElement {
     const category = this._escape(recipe?.category || '');
     const categoryHtml = category ? `🏷️ ${category}` : '&nbsp;';
     const dayLabel = this._escape(this._dayLabel(recipe, day));
+    const isPast = this._isPastRecipe(recipe);
+    const pastBadge = isPast ? '<span class="past-badge">Geweest</span>' : '';
+    const disabledAttribute = isPast ? ' disabled aria-disabled="true"' : '';
     return `
-      <article class="dg-card" style="--accent:${color}">
+      <article class="dg-card ${isPast ? 'is-past' : ''}" style="--accent:${color}">
         <div class="dg-card-header">
           <strong>${dayLabel}</strong>
+          ${pastBadge}
         </div>
         <img src="${this._escape(this._image(recipe))}" alt="" class="recipe-image" loading="lazy">
         <div class="dg-card-body">
           <h3>${title}</h3>
           <div class="meta">⏱ ${prep} <span>${this._dietIcon(dietType)} ${diet}</span></div>
           <div class="meta category-meta">${categoryHtml}</div>
-          <button class="detail-button" data-action="details" data-entity="${this._escape(recipe?.entity_id || '')}" data-recipe-id="${this._escape(recipe?.recipe_id || recipe?.id || '')}">Details bekijken</button>
+          <button class="detail-button" data-action="details" data-entity="${this._escape(recipe?.entity_id || '')}" data-recipe-id="${this._escape(recipe?.recipe_id || recipe?.id || '')}"${disabledAttribute}>Details bekijken</button>
         </div>
       </article>
     `;
@@ -489,6 +497,16 @@ class DinnerGenieCard extends HTMLElement {
     if (weekday) return weekday;
     if (date) return this._formatFullDate(date);
     return `Dag ${day}`;
+  }
+
+  _isPastRecipe(recipe) {
+    if (recipe?.planning_is_past) return true;
+    return this._isPastDate(recipe?.planning_date || recipe?.date);
+  }
+
+  _isPastDate(value) {
+    if (!value) return false;
+    return String(value).slice(0, 10) < this._localIsoDate();
   }
 
   _formatDayMonth(value) {
@@ -804,7 +822,9 @@ class DinnerGenieCard extends HTMLElement {
       .today-grid { grid-template-columns: minmax(230px, 420px); }
       .recipes-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
       .dg-card { --accent:#F28C28; background:#1f1f1f; border-radius:22px; overflow:hidden; border-top:5px solid var(--accent); box-shadow:0 8px 24px rgba(0,0,0,.28); height:100%; display:flex; flex-direction:column; }
+      .dg-card.is-past { --accent:#7f7f7f; opacity:.58; filter:grayscale(1); box-shadow:none; }
       .dg-card-header { display:flex; justify-content:space-between; align-items:center; padding:12px 14px; color:white; font-size:18px; }
+      .past-badge { border:1px solid rgba(255,255,255,.24); border-radius:999px; padding:3px 8px; font-size:12px; font-weight:700; color:#e0e0e0; }
       .icon-button { border:0; width:32px; height:32px; border-radius:50%; background:var(--accent); color:white; font-size:18px; cursor:pointer; }
       .recipe-image { width:100%; height:155px; object-fit:cover; display:block; }
       .dg-card-body { padding:14px; color:white; flex:1; display:flex; flex-direction:column; }
@@ -812,6 +832,7 @@ class DinnerGenieCard extends HTMLElement {
       .meta { color:#d0d0d0; font-size:14px; line-height:1.4; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
       .category-meta { min-height:20px; }
       .detail-button { margin-top:auto; width:100%; border:0; border-radius:16px; background:var(--accent); color:white; padding:11px; font-weight:700; cursor:pointer; }
+      .detail-button:disabled { cursor:not-allowed; opacity:.7; }
       .filters { display:grid; grid-template-columns: 1.5fr 1fr 1fr; gap:10px; margin-bottom:16px; }
       input, select { border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.06); color:var(--primary-text-color); border-radius:14px; padding:10px; }
       .empty { opacity:.7; }
@@ -861,7 +882,7 @@ if (!customElements.get(SAVELIO_CARD_TAG)) {
   customElements.define(SAVELIO_CARD_TAG, SavelioCard);
 }
 if (!customElements.get(SAVELIO_CARD_VERSIONED_TAG)) {
-  customElements.define(SAVELIO_CARD_VERSIONED_TAG, class SavelioCardV3012 extends SavelioCard {});
+  customElements.define(SAVELIO_CARD_VERSIONED_TAG, class SavelioCardV3017 extends SavelioCard {});
 }
 
 const isLegacyDinnerGeniePickerCard = (card) => {

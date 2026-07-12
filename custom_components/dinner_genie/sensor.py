@@ -109,6 +109,7 @@ def _recipe_attributes(recipe: dict[str, Any] | None) -> dict[str, Any]:
         "planning_date": recipe.get("planning_date"),
         "planning_weekday": recipe.get("planning_weekday"),
         "planning_label": recipe.get("planning_label"),
+        "planning_is_past": bool(recipe.get("planning_is_past")),
     }
 
 
@@ -133,17 +134,20 @@ def _day_entry_for_dashboard(entry: Any) -> dict[str, Any] | None:
     date = entry.get("date") or recipe.get("planning_date")
     weekday = entry.get("weekday") or recipe.get("planning_weekday")
     label = entry.get("label") or recipe.get("planning_label")
+    is_past = bool(entry.get("is_past") or recipe.get("planning_is_past"))
 
     recipe["planning_day"] = day
     recipe["planning_date"] = date
     recipe["planning_weekday"] = weekday
     recipe["planning_label"] = label
+    recipe["planning_is_past"] = is_past
 
     return {
         "day": day,
         "date": date,
         "weekday": weekday,
         "label": label,
+        "is_past": is_past,
         "recipe": recipe,
     }
 

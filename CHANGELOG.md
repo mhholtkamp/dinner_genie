@@ -1,3 +1,8 @@
+## 3.0.17
+
+- Markeert verlopen dagen in het weekoverzicht als grijs/disabled terwijl ze zichtbaar blijven.
+- Bouwt de Savelio boodschappenlijst alleen nog op uit maaltijden van vandaag en toekomstige dagen.
+
 ## 3.0.16
 
 - Corrigeert de beschikbaarheidscheck van `todo.shopping_list` voor de knop **Stuur boodschappen naar HA lijst**.

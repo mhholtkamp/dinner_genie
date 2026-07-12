@@ -9,6 +9,7 @@ from homeassistant.components.todo import TodoItemStatus
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.util import dt as dt_util
 
 from .api import DinnerGenieApiError, DinnerGenieClient
 from .const import (
@@ -69,7 +70,12 @@ class DinnerGenieCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         day_entries = self._day_entries_from_week_planning(week_planning)
         self._enrich_day_entries(day_entries, recipes)
         meals = [entry["recipe"] for entry in day_entries if isinstance(entry.get("recipe"), dict)]
-        shopping_lines = self._shopping_lines_from_week_planning(week_planning)
+        active_meals = [
+            entry["recipe"]
+            for entry in day_entries
+            if not entry.get("is_past") and isinstance(entry.get("recipe"), dict)
+        ]
+        shopping_lines = self._build_shopping_lines(active_meals)
         return {
             "recipes": recipes,
             "random": old.get("random"),
@@ -171,6 +177,7 @@ class DinnerGenieCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 "label": item.get("label") or item.get("title"),
                 "recipe": recipe,
             }
+            entry["is_past"] = self._is_past_date(entry.get("date"))
             entry["weekday"] = entry.get("weekday") or self._weekday_from_date(entry.get("date"))
             entry["label"] = entry.get("label") or self._date_label(entry.get("date"), entry.get("weekday"))
             self._copy_day_metadata_to_recipe(entry, recipe)
@@ -266,12 +273,18 @@ class DinnerGenieCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return None
 
     @staticmethod
+    def _is_past_date(value: Any) -> bool:
+        parsed = DinnerGenieCoordinator._parse_date(value)
+        return bool(parsed and parsed < dt_util.now().date())
+
+    @staticmethod
     def _copy_day_metadata_to_recipe(entry: dict[str, Any], recipe: dict[str, Any]) -> None:
         for source, target in (
             ("day", "planning_day"),
             ("date", "planning_date"),
             ("weekday", "planning_weekday"),
             ("label", "planning_label"),
+            ("is_past", "planning_is_past"),
         ):
             if entry.get(source) not in (None, ""):
                 recipe[target] = entry[source]
