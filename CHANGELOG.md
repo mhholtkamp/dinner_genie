@@ -1,3 +1,9 @@
+## 3.0.19
+
+- Voegt een knop **Stuur boodschappen naar HA en leeg Savelio** toe.
+- Ruimt stale registry entries op voor alle Savelio boodschappenknoppen, zodat vaste entity-id's opnieuw worden aangemaakt.
+- Werkt dashboardvoorbeelden bij om de gecombineerde knop met bevestigingsvraag te gebruiken.
+
 ## 3.0.18
 
 - Voegt een knop **Leeg Savelio boodschappenlijst** toe.

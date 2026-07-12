@@ -73,18 +73,28 @@ def _async_remove_legacy_day_entities(hass: HomeAssistant, entry: ConfigEntry) -
             registry.async_remove(entity.entity_id)
 
 
-def _async_reset_shopping_export_button(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Remove stale shopping export registry entries so the button can be recreated."""
+def _async_reset_shopping_buttons(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Remove stale shopping button registry entries so they can be recreated."""
     registry = er.async_get(hass)
     known_unique_ids = {
         f"{entry.entry_id}_send_shopping_to_ha_list",
         f"{entry.entry_id}_shopping_export_to_ha_list",
+        f"{entry.entry_id}_clear_shopping_list",
+        f"{entry.entry_id}_send_and_clear_shopping_list",
     }
     known_entity_ids = {
         "button.dinner_genie_stuur_boodschappen_naar_ha_lijst",
         "button.savelio_stuur_boodschappen_naar_ha_lijst",
         "button.dinner_genie_send_shopping_to_ha_list",
         "button.savelio_send_shopping_to_ha_list",
+        "button.dinner_genie_leeg_savelio_boodschappenlijst",
+        "button.savelio_leeg_savelio_boodschappenlijst",
+        "button.dinner_genie_clear_shopping_list",
+        "button.savelio_clear_shopping_list",
+        "button.dinner_genie_stuur_boodschappen_naar_ha_en_leeg_savelio",
+        "button.savelio_stuur_boodschappen_naar_ha_en_leeg_savelio",
+        "button.dinner_genie_send_and_clear_shopping_list",
+        "button.savelio_send_and_clear_shopping_list",
     }
 
     for entity in list(registry.entities.values()):
@@ -99,7 +109,7 @@ def _async_reset_shopping_export_button(hass: HomeAssistant, entry: ConfigEntry)
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await _async_register_static_assets(hass)
     _async_remove_legacy_day_entities(hass, entry)
-    _async_reset_shopping_export_button(hass, entry)
+    _async_reset_shopping_buttons(hass, entry)
     session = async_get_clientsession(hass)
     client = DinnerGenieClient(
         session,

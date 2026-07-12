@@ -11,6 +11,7 @@ from .const import DOMAIN
 OFFICIAL_SHOPPING_LIST_ENTITY = "todo.shopping_list"
 SEND_SHOPPING_ENTITY_ID = "button.dinner_genie_stuur_boodschappen_naar_ha_lijst"
 CLEAR_SHOPPING_ENTITY_ID = "button.dinner_genie_leeg_savelio_boodschappenlijst"
+SEND_AND_CLEAR_SHOPPING_ENTITY_ID = "button.dinner_genie_stuur_boodschappen_naar_ha_en_leeg_savelio"
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
@@ -21,6 +22,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         DinnerGenieRandomButton(coordinator),
         DinnerGenieSendShoppingListButton(coordinator),
         DinnerGenieClearShoppingListButton(coordinator),
+        DinnerGenieSendAndClearShoppingListButton(coordinator),
     ]
     async_add_entities(entities)
 
@@ -86,27 +88,7 @@ class DinnerGenieSendShoppingListButton(DinnerGenieBaseButton):
         return True
 
     async def async_press(self) -> None:
-        lines = [
-            str(line).strip()
-            for line in (self.coordinator.data or {}).get("shopping_lines") or []
-            if str(line).strip()
-        ]
-        if not lines:
-            raise HomeAssistantError("Geen Savelio boodschappen om te versturen.")
-
-        if self.coordinator.hass.states.get(OFFICIAL_SHOPPING_LIST_ENTITY) is None:
-            raise HomeAssistantError("De officiele Home Assistant shopping list is niet gevonden.")
-
-        for line in lines:
-            await self.coordinator.hass.services.async_call(
-                "todo",
-                "add_item",
-                {
-                    "entity_id": OFFICIAL_SHOPPING_LIST_ENTITY,
-                    "item": line,
-                },
-                blocking=True,
-            )
+        await async_send_shopping_lines_to_ha(self.coordinator)
 
 
 class DinnerGenieClearShoppingListButton(DinnerGenieBaseButton):
@@ -124,3 +106,45 @@ class DinnerGenieClearShoppingListButton(DinnerGenieBaseButton):
 
     async def async_press(self) -> None:
         await self.coordinator.async_clear_shopping_list()
+
+
+class DinnerGenieSendAndClearShoppingListButton(DinnerGenieBaseButton):
+    _attr_name = "Stuur boodschappen naar HA en leeg Savelio"
+    _attr_icon = "mdi:cart-check"
+
+    def __init__(self, coordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{coordinator.entry.entry_id}_send_and_clear_shopping_list"
+        self._attr_entity_id = SEND_AND_CLEAR_SHOPPING_ENTITY_ID
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    async def async_press(self) -> None:
+        await async_send_shopping_lines_to_ha(self.coordinator)
+        await self.coordinator.async_clear_shopping_list()
+
+
+async def async_send_shopping_lines_to_ha(coordinator) -> None:
+    lines = [
+        str(line).strip()
+        for line in (coordinator.data or {}).get("shopping_lines") or []
+        if str(line).strip()
+    ]
+    if not lines:
+        raise HomeAssistantError("Geen Savelio boodschappen om te versturen.")
+
+    if coordinator.hass.states.get(OFFICIAL_SHOPPING_LIST_ENTITY) is None:
+        raise HomeAssistantError("De officiele Home Assistant shopping list is niet gevonden.")
+
+    for line in lines:
+        await coordinator.hass.services.async_call(
+            "todo",
+            "add_item",
+            {
+                "entity_id": OFFICIAL_SHOPPING_LIST_ENTITY,
+                "item": line,
+            },
+            blocking=True,
+        )

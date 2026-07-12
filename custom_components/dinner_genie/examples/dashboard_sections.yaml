@@ -45,13 +45,11 @@ views:
             entity: todo.dinner_genie_boodschappen
             title: Boodschappen
           - type: button
-            entity: button.dinner_genie_stuur_boodschappen_naar_ha_lijst
-          - type: button
-            entity: button.dinner_genie_leeg_savelio_boodschappenlijst
+            entity: button.dinner_genie_stuur_boodschappen_naar_ha_en_leeg_savelio
             tap_action:
               action: call-service
               service: button.press
               target:
-                entity_id: button.dinner_genie_leeg_savelio_boodschappenlijst
+                entity_id: button.dinner_genie_stuur_boodschappen_naar_ha_en_leeg_savelio
               confirmation:
-                text: Wil je de Savelio boodschappenlijst legen?
+                text: Wil je de boodschappen naar Home Assistant sturen en daarna de Savelio boodschappenlijst legen?

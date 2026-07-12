@@ -30,6 +30,7 @@ De integratie maakt automatisch deze entiteiten aan:
 - `button.dinner_genie_kies_willekeurig_gerecht`
 - `button.dinner_genie_stuur_boodschappen_naar_ha_lijst`
 - `button.dinner_genie_leeg_savelio_boodschappenlijst`
+- `button.dinner_genie_stuur_boodschappen_naar_ha_en_leeg_savelio`
 - `sensor.dinner_genie_aantal_recepten`
 - `sensor.dinner_genie_willekeurig_gerecht`
 - `sensor.dinner_genie_weekmenu`
@@ -44,6 +45,8 @@ De weekplanning wordt in de Savelio webinterface gemaakt. Home Assistant haalt d
 Gebruik **Stuur boodschappen naar HA lijst** om de Savelio boodschappenregels toe te voegen aan de officiele Home Assistant shopping list (`todo.shopping_list`).
 
 Gebruik **Leeg Savelio boodschappenlijst** om de lokale Savelio boodschappenlijst leeg te maken. Voeg in Lovelace een `confirmation` toe als je eerst een ja/nee-vraag wilt tonen.
+
+Gebruik **Stuur boodschappen naar HA en leeg Savelio** als je in een keer de boodschappen naar `todo.shopping_list` wilt sturen en daarna de Savelio boodschappenlijst wilt legen. Dit is de aanbevolen knop voor dashboards.
 
 De integratie roept dan aan:
 
@@ -113,7 +116,7 @@ Type: JavaScript module.
 Als Home Assistant een oude versie blijft laden, voeg tijdelijk een versie-query toe, bijvoorbeeld:
 
 ```text
-/api/dinner_genie/www/dinner-genie-card.js?v=3.0.18
+/api/dinner_genie/www/dinner-genie-card.js?v=3.0.19
 ```
 
 Gebruik voor nieuwe dashboards de v2-kaart. Die omzeilt oude frontend-registraties van eerdere card-versies:
