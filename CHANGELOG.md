@@ -1,3 +1,10 @@
+## 3.0.8
+
+- Verwijdert de aparte `Dag 1` t/m `Dag 7` sensors uit de apparaat-eigenschappen.
+- Ruimt oude dag-sensors en oude vervang-dag buttons automatisch op uit de Home Assistant entity registry.
+- Laat de Savelio card weekmenu-data rechtstreeks uit `sensor.dinner_genie_weekmenu` lezen.
+- Werkt de voorbeeld-dashboards bij zodat ze geen losse dagsensoren meer gebruiken.
+
 ## 3.0.7
 
 - Introduceert `custom:savelio-card-v307` als nieuwe frontend-tag om oude browser-registraties van `custom:savelio-card` te omzeilen.

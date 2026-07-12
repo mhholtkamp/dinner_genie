@@ -8,16 +8,10 @@ views:
         entities:
           - button.dinner_genie_kies_willekeurig_gerecht
 
-      - type: entities
+      - type: custom:savelio-card-v307
+        mode: week
         title: Weekplanning
-        entities:
-          - sensor.dinner_genie_dag_1
-          - sensor.dinner_genie_dag_2
-          - sensor.dinner_genie_dag_3
-          - sensor.dinner_genie_dag_4
-          - sensor.dinner_genie_dag_5
-          - sensor.dinner_genie_dag_6
-          - sensor.dinner_genie_dag_7
+        days_entity: number.dinner_genie_aantal_dagen
 
       - type: todo-list
         entity: todo.dinner_genie_boodschappen

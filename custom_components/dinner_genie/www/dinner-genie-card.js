@@ -1,5 +1,5 @@
 
-const DINNER_GENIE_CARD_VERSION = '3.0.7';
+const DINNER_GENIE_CARD_VERSION = '3.0.8';
 const DINNER_GENIE_CARD_TAG = 'dinner-genie-card';
 const DINNER_GENIE_CARD_V2_TAG = 'dinner-genie-card-v2';
 const DINNER_GENIE_CARD_VERSIONED_TAG = 'dinner-genie-card-v239';
@@ -25,6 +25,7 @@ class DinnerGenieCard extends HTMLElement {
       dashboard_path: '/dinner-genie',
       generate_button: 'button.dinner_genie_genereer_weekmenu',
       days_entity: 'number.dinner_genie_aantal_dagen',
+      weekmenu_entity: 'sensor.dinner_genie_weekmenu',
       recipes_entity: 'sensor.dinner_genie_recepten',
       debug: false,
       preview: false,
@@ -87,7 +88,7 @@ class DinnerGenieCard extends HTMLElement {
     const configuredMax = Number(this.config.max_days || 7);
     const state = this._state(this.config.days_entity);
     const entityDays = Number(state?.state);
-    const inferredDays = this._inferredAvailableDayCount(configuredMax);
+    const inferredDays = this._weekMenuRecipes(7).length || this._inferredAvailableDayCount(configuredMax);
     const days = Number.isFinite(entityDays) && entityDays > 0 ? entityDays : (inferredDays || configuredMax);
     return Math.min(7, Math.max(1, Math.trunc(days)));
   }
@@ -175,6 +176,7 @@ class DinnerGenieCard extends HTMLElement {
 
     const maxDays = this._weekDayCount();
     const daysState = this._state(this.config.days_entity);
+    const weekMenuState = this._state(this.config.weekmenu_entity);
     const days = [];
     for (let day = 1; day <= maxDays; day += 1) {
       const entityId = this._dayEntity(day);
@@ -191,6 +193,9 @@ class DinnerGenieCard extends HTMLElement {
       max_days: maxDays,
       days_entity: this.config.days_entity,
       days_state: daysState?.state || '',
+      weekmenu_entity: this.config.weekmenu_entity,
+      weekmenu_state: weekMenuState?.state || '',
+      weekmenu_attributes: weekMenuState?.attributes || {},
       days,
     });
   }
@@ -220,6 +225,40 @@ class DinnerGenieCard extends HTMLElement {
     if (!state && this.config?.preview) return this._previewRecipe(entityId);
     if (!state) return null;
     return { state: state.state, entity_id: entityId, ...(state.attributes || {}) };
+  }
+
+  _recipeFromWeekMenuItem(item, index) {
+    if (!item || typeof item !== 'object') return null;
+    const recipe = item.recipe && typeof item.recipe === 'object' ? item.recipe : item;
+    const day = item.day || item.dayNumber || item.day_number || item.dayIndex || item.day_index || index + 1;
+    const date = item.date || item.plannedDate || item.planned_date || recipe.planning_date;
+    const weekday = item.weekday || item.dayName || item.day_name || recipe.planning_weekday;
+    const label = item.label || item.title || recipe.planning_label;
+    return {
+      day,
+      recipe: {
+        state: recipe.name || recipe.state || 'Geen gerecht',
+        entity_id: this.config.weekmenu_entity,
+        ...recipe,
+        planning_day: recipe.planning_day || day,
+        planning_date: recipe.planning_date || date,
+        planning_weekday: recipe.planning_weekday || weekday,
+        planning_label: recipe.planning_label || label,
+      },
+    };
+  }
+
+  _weekMenuRecipes(limit = 7) {
+    if (this.config?.preview) return [{ day: 1, recipe: this._previewRecipe('preview_recipe') }];
+    const state = this._state(this.config.weekmenu_entity);
+    const attributes = state?.attributes || {};
+    const days = Array.isArray(attributes.days) ? attributes.days : [];
+    const meals = Array.isArray(attributes.meals) ? attributes.meals : [];
+    const source = days.length ? days : meals;
+    return source
+      .slice(0, Math.min(7, Math.max(1, Math.trunc(Number(limit) || 7))))
+      .map((item, index) => this._recipeFromWeekMenuItem(item, index))
+      .filter((item) => item?.recipe && !['unavailable', 'unknown'].includes(item.recipe.state));
   }
 
   _allRecipes() {
@@ -361,6 +400,9 @@ class DinnerGenieCard extends HTMLElement {
   }
 
   _weekRecipes(limit = this._weekDayCount()) {
+    const weekMenuRecipes = this._weekMenuRecipes(limit);
+    if (weekMenuRecipes.length) return weekMenuRecipes;
+
     const maxDays = Math.min(7, Math.max(1, Math.trunc(Number(limit) || 7)));
     const recipes = [];
     for (let day = 1; day <= maxDays; day += 1) {
@@ -377,7 +419,7 @@ class DinnerGenieCard extends HTMLElement {
     return recipes.find(({ recipe }) => {
       const date = recipe?.planning_date || recipe?.date;
       return String(date || '').slice(0, 10) === today;
-    }) || recipes[0] || null;
+    }) || null;
   }
 
   _renderWeek() {

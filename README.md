@@ -31,13 +31,6 @@ De integratie maakt automatisch deze entiteiten aan:
 - `sensor.dinner_genie_aantal_recepten`
 - `sensor.dinner_genie_willekeurig_gerecht`
 - `sensor.dinner_genie_weekmenu`
-- `sensor.dinner_genie_dag_1`
-- `sensor.dinner_genie_dag_2`
-- `sensor.dinner_genie_dag_3`
-- `sensor.dinner_genie_dag_4`
-- `sensor.dinner_genie_dag_5`
-- `sensor.dinner_genie_dag_6`
-- `sensor.dinner_genie_dag_7`
 - `todo.dinner_genie_boodschappen`
 - `select.dinner_genie_dieet`
 - `select.dinner_genie_recepttype`
@@ -56,15 +49,7 @@ met de waarden uit Home Assistant.
 
 ## Maaltijden bekijken
 
-Naast de overzichtssensor `sensor.dinner_genie_weekmenu` maakt de integratie nu ook per dag een sensor aan.
-
-Bijvoorbeeld:
-
-```text
-sensor.dinner_genie_dag_1
-```
-
-De state is de naam van het gerecht. In de attributes staan onder andere:
+De actuele planning staat in `sensor.dinner_genie_weekmenu`. In de attributes staan onder andere:
 
 - `description`
 - `prep_time`
@@ -76,8 +61,10 @@ De state is de naam van het gerecht. In de attributes staan onder andere:
 - `instructions`
 - `image_url`
 - `recipe_id`
+- `days`
+- `meals`
 
-Je kunt dus op de dagsensor klikken om de bereiding en ingrediënten te bekijken.
+De Savelio Lovelace card leest deze data rechtstreeks uit `sensor.dinner_genie_weekmenu`.
 
 
 ## Afbeeldingen
@@ -101,14 +88,7 @@ Dezelfde voorbeelden staan ook in:
 custom_components/dinner_genie/examples/
 ```
 
-Voor het complete sections dashboard zijn deze HACS frontend kaarten handig:
-
-```text
-Button Card
-Card Mod
-```
-
-Gebruik `dashboard_minimal.yaml` als je zonder custom frontend kaarten wilt starten.
+De voorbeelden gebruiken de meegeleverde Savelio Lovelace card.
 
 ## Weekplanning beheren
 
@@ -127,7 +107,7 @@ Type: JavaScript module.
 Als Home Assistant een oude versie blijft laden, voeg tijdelijk een versie-query toe, bijvoorbeeld:
 
 ```text
-/api/dinner_genie/www/dinner-genie-card.js?v=3.0.7
+/api/dinner_genie/www/dinner-genie-card.js?v=3.0.8
 ```
 
 Gebruik voor nieuwe dashboards de v2-kaart. Die omzeilt oude frontend-registraties van eerdere card-versies:

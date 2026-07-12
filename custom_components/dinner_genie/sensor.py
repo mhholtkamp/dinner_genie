@@ -8,7 +8,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, MAX_DAYS, PLACEHOLDER_IMAGE_URL
+from .const import DOMAIN, PLACEHOLDER_IMAGE_URL
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
@@ -19,7 +19,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         DinnerGenieRandomRecipeSensor(coordinator),
         DinnerGenieWeekMenuSensor(coordinator),
     ]
-    entities.extend(DinnerGenieDayMealSensor(coordinator, day_number) for day_number in range(1, MAX_DAYS + 1))
     async_add_entities(entities)
 
 
@@ -214,52 +213,3 @@ class DinnerGenieWeekMenuSensor(DinnerGenieBaseSensor):
             "meal_names": [meal.get("name") for meal in meals if isinstance(meal, dict)],
             "shopping_lines": data.get("shopping_lines") or [],
         }
-
-
-class DinnerGenieDayMealSensor(DinnerGenieBaseSensor):
-    _attr_icon = "mdi:food"
-
-    def __init__(self, coordinator, day_number: int) -> None:
-        super().__init__(coordinator)
-        self.day_number = day_number
-        self._attr_name = f"Dag {day_number}"
-        self._attr_unique_id = f"{coordinator.entry.entry_id}_day_{day_number}"
-
-    @property
-    def native_value(self):
-        recipe = self._recipe
-        if not recipe:
-            return "Geen gerecht"
-        return recipe.get("name") or "Onbekend gerecht"
-
-    @property
-    def available(self) -> bool:
-        return super().available and self._day_entry is not None
-
-    @property
-    def extra_state_attributes(self):
-        recipe = self._recipe
-        attributes = _recipe_attributes(recipe)
-        attributes["day"] = self.day_number
-        day_entry = self._day_entry or {}
-        attributes["date"] = day_entry.get("date")
-        attributes["weekday"] = day_entry.get("weekday")
-        attributes["label"] = day_entry.get("label")
-        return attributes
-
-    @property
-    def _day_entry(self) -> dict[str, Any] | None:
-        day_entries = (self.coordinator.data or {}).get("day_entries") or []
-        index = self.day_number - 1
-        if index >= len(day_entries):
-            return None
-        entry = day_entries[index]
-        return entry if isinstance(entry, dict) else None
-
-    @property
-    def _recipe(self) -> dict[str, Any] | None:
-        entry = self._day_entry
-        if not entry:
-            return None
-        recipe = entry.get("recipe")
-        return recipe if isinstance(recipe, dict) else None

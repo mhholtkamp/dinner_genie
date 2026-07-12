@@ -7,6 +7,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_API_KEY
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers import entity_registry as er
 
 from .api import DinnerGenieClient
 from .const import CONF_BASE_URL, CONF_GROUP_ID, DEFAULT_DAYS, DEFAULT_SERVINGS, DOMAIN, OPT_DAYS, OPT_SERVINGS, PLATFORMS
@@ -31,8 +32,39 @@ async def _async_register_static_assets(hass: HomeAssistant) -> None:
     hass.data[registered_key] = True
 
 
+def _async_remove_legacy_day_entities(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Remove obsolete per-day entities from older Savelio/Dinner Genie versions."""
+    registry = er.async_get(hass)
+    legacy_unique_ids = set()
+    legacy_entity_ids = set()
+
+    for day in range(1, 8):
+        legacy_unique_ids.update(
+            {
+                f"{entry.entry_id}_day_{day}",
+                f"{entry.entry_id}_replace_day_{day}",
+                f"{entry.entry_id}_day_{day}_replace",
+                f"{entry.entry_id}_replace_weekmenu_day_{day}",
+            }
+        )
+        legacy_entity_ids.update(
+            {
+                f"sensor.{DOMAIN}_dag_{day}",
+                f"button.{DOMAIN}_vervang_dag_{day}",
+                f"button.{DOMAIN}_replace_day_{day}",
+            }
+        )
+
+    for entity in list(registry.entities.values()):
+        if entity.config_entry_id != entry.entry_id:
+            continue
+        if entity.unique_id in legacy_unique_ids or entity.entity_id in legacy_entity_ids:
+            registry.async_remove(entity.entity_id)
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await _async_register_static_assets(hass)
+    _async_remove_legacy_day_entities(hass, entry)
     session = async_get_clientsession(hass)
     client = DinnerGenieClient(
         session,
